@@ -8,11 +8,9 @@
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
-#include <GL/glext.h>
 #endif
 
-#include <CL/cl.h>
-#include <CL/cl_gl.h>
+#include <clew.h>
 
 int main(int argc, char **argv)
 {	
@@ -24,6 +22,11 @@ int main(int argc, char **argv)
 	glutCreateWindow("Nothing to see here");
 
 	glewInit();
+
+	bool clpresent = 0 == clewInit();
+	if (!clpresent) {
+		throw std::runtime_error("OpenCL library not found");
+	}
 
 	printf("OpenGL Version:\t\t%s\nOpenGL Vendor:\t\t%s\nOpenGL Renderer:\t%s\nGLSL Version:\t\t%s\n",
 		glGetString(GL_VERSION),
@@ -84,56 +87,52 @@ int main(int argc, char **argv)
 			buffer,
 			NULL);
 		printf("Platformprofile:\t%s\n", buffer);
-	}
 
-	cl_uint chosenPlatformNumber = 1;
+		cl_uint numDevices;
 
-	cl_platform_id chosenPlatform = platforms[chosenPlatformNumber];
+		clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
 
-	cl_uint numDevices;
+		printf("\n\t%d Device(s) detected.\n", numDevices);
 
-	clGetDeviceIDs(chosenPlatform, CL_DEVICE_TYPE_GPU, 0, NULL, &numDevices);
+		cl_device_id* devices = new cl_device_id[numDevices];
 
-	printf("\n%d Device(s) detected\n", numDevices);
+		clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, numDevices, devices, &numDevices);
 
-	cl_device_id* devices = new cl_device_id[numDevices];
+		for (int i = 0; i < numDevices; ++i)
+		{
+			printf("\n\n\tDevice: %d\n", i);
+			err = clGetDeviceInfo(
+				devices[i],
+				CL_DEVICE_NAME,
+				10240,
+				buffer,
+				NULL);
+			printf("\tDevice Name:\t%s\n", buffer);
 
-	clGetDeviceIDs(chosenPlatform, CL_DEVICE_TYPE_GPU, numDevices, devices, &numDevices);
+			err = clGetDeviceInfo(
+				devices[i],
+				CL_DEVICE_VENDOR,
+				10240,
+				buffer,
+				NULL);
+			printf("\tDevice Vendor:\t%s\n", buffer);
 
-	for (int i = 0; i < numDevices; ++i)
-	{
-		printf("\n\nDevice: %d\n", i);
-		err = clGetDeviceInfo(
-			devices[i],
-			CL_DEVICE_NAME,
-			10240,
-			buffer,
-			NULL);
-		printf("Device Name:\t%s\n", buffer);
+			err = clGetDeviceInfo(
+				devices[i],
+				CL_DEVICE_VERSION,
+				10240,
+				buffer,
+				NULL);
+			printf("\tDevice Version:\t%s\n", buffer);
 
-		err = clGetDeviceInfo(
-			devices[i],
-			CL_DEVICE_VENDOR,
-			10240,
-			buffer,
-			NULL);
-		printf("Device Vendor:\t%s\n", buffer);
-
-		err = clGetDeviceInfo(
-			devices[i],
-			CL_DEVICE_VERSION,
-			10240,
-			buffer,
-			NULL);
-		printf("Device Version:\t%s\n", buffer);
-
-		err = clGetDeviceInfo(
-			devices[i],
-			CL_DRIVER_VERSION,
-			10240,
-			buffer,
-			NULL);
-		printf("Driver Version:\t%s\n", buffer);
+			err = clGetDeviceInfo(
+				devices[i],
+				CL_DRIVER_VERSION,
+				10240,
+				buffer,
+				NULL);
+			printf("\tDriver Version:\t%s\n", buffer);
+		}
 	}
 
 	cl_context_properties props[] =
@@ -143,10 +142,17 @@ int main(int argc, char **argv)
 		CL_WGL_HDC_KHR,
 		(cl_context_properties)wglGetCurrentDC(),
 		CL_CONTEXT_PLATFORM,
-		(cl_context_properties)chosenPlatform, 0
+		(cl_context_properties)platforms[1], 0
 	};
 
-	cl_context GLCLContext = clCreateContext(props, 1, &devices[0], NULL, NULL, &err);
+	cl_device_id currentOGLDevice;
+
+	// Would be nice if this function would be exposed in opencl.dll
+	// so you dont have to guess
+	//err = clGetGLContextInfoKHR(props, CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR, sizeof(cl_device_id), &currentOGLDevice, NULL);
+	err = clGetDeviceIDs(platforms[1], CL_DEVICE_TYPE_GPU, 1, &currentOGLDevice, NULL);
+
+	cl_context GLCLContext = clCreateContext(props, 1, &currentOGLDevice, NULL, NULL, &err);
 
 	const size_t testsize = 1024;
 
@@ -172,7 +178,7 @@ int main(int argc, char **argv)
 		id,
 		&err);
 
-	cl_command_queue queue = clCreateCommandQueue(GLCLContext, devices[0], 0, &err);
+	cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, &err);
 
 	const char* kernelSrc = "\n		__kernel void rev(__global int *data)\n	{\n		int gid = get_global_id(0);\n		int getGid = (get_global_size(0)-1-gid);\n		data[gid] = data[getGid];\n	}";
 
