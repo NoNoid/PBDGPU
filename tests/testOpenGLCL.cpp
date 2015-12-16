@@ -11,6 +11,7 @@
 #endif
 
 #include <clew.h>
+#include <util\functions.hpp>
 
 int main(int argc, char **argv)
 {	
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
 	clGetPlatformIDs(numPlaforms, platforms, NULL);
 
 	char buffer[10240];
-	for (int i = 0; i < numPlaforms; ++i)
+	for (cl_uint i = 0; i < numPlaforms; ++i)
 	{
 		printf("\n\nPlatform: %d\n", i);
 		err = clGetPlatformInfo(
@@ -98,7 +99,7 @@ int main(int argc, char **argv)
 
 		clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, numDevices, devices, &numDevices);
 
-		for (int i = 0; i < numDevices; ++i)
+		for (cl_uint i = 0; i < numDevices; ++i)
 		{
 			printf("\n\n\tDevice: %d\n", i);
 			err = clGetDeviceInfo(
@@ -135,24 +136,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	cl_context_properties props[] =
-	{
-		CL_GL_CONTEXT_KHR,
-		(cl_context_properties)wglGetCurrentContext(),
-		CL_WGL_HDC_KHR,
-		(cl_context_properties)wglGetCurrentDC(),
-		CL_CONTEXT_PLATFORM,
-		(cl_context_properties)platforms[1], 0
-	};
+	cl_device_id currentOGLDevice = pbdgpu::getCurrentOGLDevice();
 
-	cl_device_id currentOGLDevice;
-
-	// Would be nice if this function would be exposed in opencl.dll
-	// so you dont have to guess
-	//err = clGetGLContextInfoKHR(props, CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR, sizeof(cl_device_id), &currentOGLDevice, NULL);
-	err = clGetDeviceIDs(platforms[1], CL_DEVICE_TYPE_GPU, 1, &currentOGLDevice, NULL);
-
-	cl_context GLCLContext = clCreateContext(props, 1, &currentOGLDevice, NULL, NULL, &err);
+	cl_context GLCLContext = clCreateContext(NULL, 1, &currentOGLDevice, NULL, NULL, &err);
 
 	const size_t testsize = 1024;
 
