@@ -5,8 +5,9 @@ add_subdirectory(external)
 include_directories(include external/clew/include external/glew/include)
 
 add_library(pbdgpu STATIC
-	include/Util/gpu_mem_allocator.hpp
-	src/Util/gpu_mem_allocator.cpp
+	include/util/gpu_mem_allocator.hpp
+	include/util/gl_buffer_allocator.hpp
+	src/util/gl_buffer_allocator.cpp
 	
 	include/util/functions.hpp
 	src/util/functions.cpp
