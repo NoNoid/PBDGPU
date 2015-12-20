@@ -5,6 +5,6 @@
 
 namespace pbdgpu
 {
-	cl_device_id getCurrentOGLDevice();
+    cl_context_properties * getOGLInteropInfo(cl_device_id &out_device);
 }
 #endif

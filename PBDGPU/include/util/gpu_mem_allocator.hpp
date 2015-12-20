@@ -1,6 +1,8 @@
 #ifndef _GPU_MEM_ALLOCATOR_
 #define  _GPU_MEM_ALLOCATOR_
 
+#include <cstddef>
+
 namespace pbdgpu
 {
 	class GPUMemAllocator
@@ -8,6 +10,8 @@ namespace pbdgpu
 	public:
 		GPUMemAllocator() : sizeOfElement(0),length(0) {}
 		GPUMemAllocator(const size_t sizeOfElement) : sizeOfElement(sizeOfElement), length(0){}
+
+        virtual ~GPUMemAllocator();
 
 		inline void setLength(const size_t newLength) { length = newLength; allocate(length); }
 		inline size_t getLength() const { return length; }

@@ -17,7 +17,7 @@ namespace pbdgpu
 			bufferTargetBinding(GL_ARRAY_BUFFER_BINDING),
 			bufferUsage(GL_DYNAMIC_DRAW)
 		{}
-		~GLBufferAllocator() {}
+        virtual ~GLBufferAllocator() {}
 
 		inline GLuint getBufferID() { return bufferID; }
 

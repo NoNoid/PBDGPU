@@ -26,6 +26,8 @@ int main(int argc, char **argv)
 
 	glewInit();
 
+    GLenum gl_err = GL_NO_ERROR;
+
 	bool clpresent = 0 == clewInit();
 	if (!clpresent) {
 		throw std::runtime_error("OpenCL library not found");
@@ -38,7 +40,7 @@ int main(int argc, char **argv)
 		glGetString(GL_SHADING_LANGUAGE_VERSION)
 		);
 
-	cl_int err;	
+    cl_int cl_err;
 
 	cl_uint numPlaforms = 0;
 
@@ -59,7 +61,7 @@ int main(int argc, char **argv)
 	for (cl_uint i = 0; i < numPlaforms; ++i)
 	{
 		printf("\n\nPlatform: %d\n", i);
-		err = clGetPlatformInfo(
+        cl_err = clGetPlatformInfo(
 			platforms[i],
 			CL_PLATFORM_NAME,
 			10240,
@@ -67,7 +69,7 @@ int main(int argc, char **argv)
 			NULL);
 		printf("Platformnname:\t\t%s\n", buffer);
 
-		err = clGetPlatformInfo(
+        cl_err = clGetPlatformInfo(
 			platforms[i],
 			CL_PLATFORM_VENDOR,
 			10240,
@@ -75,7 +77,7 @@ int main(int argc, char **argv)
 			NULL);
 		printf("Platformvendor:\t\t%s\n", buffer);
 
-		err = clGetPlatformInfo(
+        cl_err = clGetPlatformInfo(
 			platforms[i],
 			CL_PLATFORM_VERSION,
 			10240,
@@ -83,7 +85,7 @@ int main(int argc, char **argv)
 			NULL);
 		printf("Platformversion:\t%s\n", buffer);
 
-		err = clGetPlatformInfo(
+        cl_err = clGetPlatformInfo(
 			platforms[i],
 			CL_PLATFORM_PROFILE,
 			10240,
@@ -104,7 +106,7 @@ int main(int argc, char **argv)
 		for (cl_uint i = 0; i < numDevices; ++i)
 		{
 			printf("\n\n\tDevice: %d\n", i);
-			err = clGetDeviceInfo(
+            cl_err = clGetDeviceInfo(
 				devices[i],
 				CL_DEVICE_NAME,
 				10240,
@@ -112,7 +114,7 @@ int main(int argc, char **argv)
 				NULL);
 			printf("\tDevice Name:\t%s\n", buffer);
 
-			err = clGetDeviceInfo(
+            cl_err = clGetDeviceInfo(
 				devices[i],
 				CL_DEVICE_VENDOR,
 				10240,
@@ -120,7 +122,7 @@ int main(int argc, char **argv)
 				NULL);
 			printf("\tDevice Vendor:\t%s\n", buffer);
 
-			err = clGetDeviceInfo(
+            cl_err = clGetDeviceInfo(
 				devices[i],
 				CL_DEVICE_VERSION,
 				10240,
@@ -128,7 +130,7 @@ int main(int argc, char **argv)
 				NULL);
 			printf("\tDevice Version:\t%s\n", buffer);
 
-			err = clGetDeviceInfo(
+            cl_err = clGetDeviceInfo(
 				devices[i],
 				CL_DRIVER_VERSION,
 				10240,
@@ -138,20 +140,32 @@ int main(int argc, char **argv)
 		}
 	}
 
-	cl_device_id currentOGLDevice = pbdgpu::getCurrentOGLDevice();
+    cl_device_id currentOGLDevice;
+    cl_context_properties* properties = pbdgpu::getOGLInteropInfo(currentOGLDevice);
 
-	cl_context GLCLContext = clCreateContext(NULL, 1, &currentOGLDevice, NULL, NULL, &err);
+    printf("\n\n\tCurrent OGL Interop Device:\n");
+    cl_err = clGetDeviceInfo(
+        currentOGLDevice,
+        CL_DEVICE_NAME,
+        10240,
+        buffer,
+        NULL);
+    printf("\tDevice Name:\t%s\n", buffer);
+
+    cl_context GLCLContext = clCreateContext(properties, 1, &currentOGLDevice, NULL, NULL, &cl_err);
 
 	const size_t testsize = 1024;
 
 	int* testdata = new int[testsize];
+    int* revdata = new int[testsize];
 
 	for (int i = 0; i < testsize; ++i)
 	{
-		testdata[i] = i*2;
+        testdata[i] = i;
+        revdata[i] = testsize-1-i;
 	}
 
-	GLuint id = 12488;
+    GLuint id = 0;
 	glGenBuffers(1, &id);
 	glBindBuffer(GL_ARRAY_BUFFER, id);
 	glBufferData(GL_ARRAY_BUFFER, testsize*sizeof(int), testdata, GL_DYNAMIC_DRAW);
@@ -164,15 +178,19 @@ int main(int argc, char **argv)
 		GLCLContext,
 		CL_MEM_READ_WRITE,
 		id,
-		&err);
+        &cl_err);
+    if(cl_err != CL_SUCCESS)
+    {
+        printf("Error on createFromGlBuffer: %d",cl_err);
+    }
 
-	cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, &err);
+    cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, &cl_err);
 
-	const char* kernelSrc = "\n		__kernel void rev(__global int *data)\n	{\n		int gid = get_global_id(0);\n		int getGid = (get_global_size(0)-1-gid);\n		data[gid] = data[getGid];\n	}";
+    const char* kernelSrc = "\n		__kernel void rev(__global int *data)\n	{\n		int gid = get_global_id(0);\n		int getGid = (get_global_size(0)-1-gid);\n		data[gid] = data[getGid];\n	}";
 
-	cl_program program = clCreateProgramWithSource(GLCLContext, 1, &kernelSrc, NULL, &err);
+    cl_program program = clCreateProgramWithSource(GLCLContext, 1, &kernelSrc, NULL, &cl_err);
 
-	err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+    cl_err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 
 	//size_t len;
 	//char * BLog;
@@ -181,21 +199,27 @@ int main(int argc, char **argv)
 	//clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, len, BLog, NULL);
 	//printf("%s\n", BLog);
 
-	cl_kernel kernel = clCreateKernel(program, "rev", &err);
+    cl_kernel kernel = clCreateKernel(program, "rev", &cl_err);
 
-	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &sharedMem);
+    cl_err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &sharedMem);
 
-	err = clEnqueueAcquireGLObjects(queue, 1, &sharedMem, 0, NULL, NULL);
+    cl_err = clEnqueueAcquireGLObjects(queue, 1, &sharedMem, 0, NULL, NULL);
 
-	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &testsize, NULL, 0, NULL, NULL);
+    clFinish(queue);
+
+    cl_err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &testsize, NULL, 0, NULL, NULL);
+    if(cl_err != CL_SUCCESS)
+    {
+        printf("Error on Kernel Execution:%d",cl_err);
+    }
 
 	clFinish(queue);
 
-	err = clEnqueueReleaseGLObjects(queue, 1, &sharedMem, 0, NULL, NULL);
+    cl_err = clEnqueueReleaseGLObjects(queue, 1, &sharedMem, 0, NULL, NULL);
 
 	glBindBuffer(GL_ARRAY_BUFFER, id);
 
-	int* data = (int*)glMapBufferRange(GL_ARRAY_BUFFER, 0, testsize*sizeof(int), GL_MAP_READ_BIT);
+    int* data = (int*)glMapBufferRange(GL_ARRAY_BUFFER, 0, testsize*sizeof(int), GL_MAP_READ_BIT);
 
 	printf("\n");
 	for (int i = 0; i < 10; ++i)
@@ -203,10 +227,34 @@ int main(int argc, char **argv)
 		printf("%d ", data[i]);
 	}
 	printf("... ");
-	for (int i = testsize-10; i < testsize; ++i)
+    for (int i = testsize-10; i < testsize; ++i)
 	{
 		printf("%d ", data[i]);
 	}
 	printf("\n");
+
+    int error = 0;
+    for(int i = 0; i < testsize; ++i)
+    {
+        error = abs(data[i]-revdata[i]);
+    }
+
+    printf("\nerror: %d\n",error);
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    clFinish(queue);
+
+    clReleaseMemObject(sharedMem);
+    glDeleteBuffers(1,&id);
+
+    clReleaseProgram(program);
+    clReleaseCommandQueue(queue);
+    clReleaseContext(GLCLContext);
+    clReleaseDevice(currentOGLDevice);
+
+    while((gl_err = glGetError()) != GL_NO_ERROR)
+    {
+      printf("gl_error: %d",gl_err);
+    }
 }
