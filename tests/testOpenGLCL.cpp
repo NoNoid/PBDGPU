@@ -14,6 +14,7 @@
 
 #include <clew.h>
 #include <util/functions.hpp>
+#include <util/gl_buffer_allocator.hpp>
 
 int main(int argc, char **argv)
 {	
@@ -165,24 +166,12 @@ int main(int argc, char **argv)
         revdata[i] = testsize-1-i;
 	}
 
-    GLuint id = 0;
-	glGenBuffers(1, &id);
-	glBindBuffer(GL_ARRAY_BUFFER, id);
-	glBufferData(GL_ARRAY_BUFFER, testsize*sizeof(int), testdata, GL_DYNAMIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    pbdgpu::GLBufferAllocator gpumem(sizeof(int));
+    gpumem.write(testsize,testdata);
 
 	glFinish();
 
-	cl_mem sharedMem = clCreateFromGLBuffer(
-		GLCLContext,
-		CL_MEM_READ_WRITE,
-		id,
-        &cl_err);
-    if(cl_err != CL_SUCCESS)
-    {
-        printf("Error on createFromGlBuffer: %d",cl_err);
-    }
+    gpumem.initCLSharing(GLCLContext);
 
     cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, &cl_err);
 
@@ -201,9 +190,9 @@ int main(int argc, char **argv)
 
     cl_kernel kernel = clCreateKernel(program, "rev", &cl_err);
 
-    cl_err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &sharedMem);
+    cl_err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &gpumem.getCLMem());
 
-    cl_err = clEnqueueAcquireGLObjects(queue, 1, &sharedMem, 0, NULL, NULL);
+    cl_err = clEnqueueAcquireGLObjects(queue, 1, &gpumem.getCLMem(), 0, NULL, NULL);
 
     clFinish(queue);
 
@@ -215,11 +204,9 @@ int main(int argc, char **argv)
 
 	clFinish(queue);
 
-    cl_err = clEnqueueReleaseGLObjects(queue, 1, &sharedMem, 0, NULL, NULL);
+    cl_err = clEnqueueReleaseGLObjects(queue, 1, &gpumem.getCLMem(), 0, NULL, NULL);
 
-	glBindBuffer(GL_ARRAY_BUFFER, id);
-
-    int* data = (int*)glMapBufferRange(GL_ARRAY_BUFFER, 0, testsize*sizeof(int), GL_MAP_READ_BIT);
+    int* data = static_cast<int*>(gpumem.map());
 
 	printf("\n");
 	for (int i = 0; i < 10; ++i)
@@ -239,14 +226,11 @@ int main(int argc, char **argv)
         error = abs(data[i]-revdata[i]);
     }
 
-    printf("\nerror: %d\n",error);
+    printf("\nComputation Error: %d\n",error);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     clFinish(queue);
-
-    clReleaseMemObject(sharedMem);
-    glDeleteBuffers(1,&id);
 
     clReleaseProgram(program);
     clReleaseCommandQueue(queue);
