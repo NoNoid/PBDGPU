@@ -13,4 +13,6 @@ add_library(pbdgpu STATIC
 	src/util/functions.cpp
 	)
 
-target_link_libraries(pbdgpu glew clew)
+find_package(OpenGL)
+
+target_link_libraries(pbdgpu ${OPENGL_gl_LIBRARY} glew clew)

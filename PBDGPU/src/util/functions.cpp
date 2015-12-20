@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include <util\functions.hpp>
+#include <util/functions.hpp>
 
 #ifdef _WIN32
 #   include <windows.h>
 #elif __linux__
-
+#include <GL/glx.h>
 #elif __APPLE__
 
 #endif
@@ -31,7 +31,6 @@ cl_device_id pbdgpu::getCurrentOGLDevice()
 		CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
 		CL_CONTEXT_PLATFORM, (cl_context_properties)arbitraryplatform,
 #elif __linux__
-	cl_context_properties linuxproperties[] = {
 		CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
 		CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(),
 		CL_CONTEXT_PLATFORM, (cl_context_properties)arbitraryplatform,

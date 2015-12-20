@@ -1,4 +1,6 @@
 #include <memory>
+#include <stdexcept>
+#include <stdio.h>
 #include <iostream>
 
 
@@ -11,7 +13,7 @@
 #endif
 
 #include <clew.h>
-#include <util\functions.hpp>
+#include <util/functions.hpp>
 
 int main(int argc, char **argv)
 {	
