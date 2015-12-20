@@ -42,7 +42,13 @@ namespace pbdgpu
 		glBindBuffer(bufferTarget, previousBuffer);
 	}
 
-	void GLBufferAllocator::write(size_t numElems, const void *data)
+    GLBufferAllocator::~GLBufferAllocator()
+    {
+        clReleaseMemObject(clSharingMem);
+        glDeleteBuffers(1,&bufferID);
+    }
+
+    void GLBufferAllocator::write(size_t numElems, const void *data)
 	{
 		if (numElems > length)
 		{

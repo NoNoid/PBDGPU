@@ -11,7 +11,7 @@ namespace pbdgpu
 		GPUMemAllocator() : sizeOfElement(0),length(0) {}
 		GPUMemAllocator(const size_t sizeOfElement) : sizeOfElement(sizeOfElement), length(0){}
 
-        virtual ~GPUMemAllocator();
+        virtual ~GPUMemAllocator() {}
 
 		inline void setLength(const size_t newLength) { length = newLength; allocate(length); }
 		inline size_t getLength() const { return length; }
@@ -26,8 +26,9 @@ namespace pbdgpu
 		const size_t sizeOfElement;
 		size_t length;
 
-		virtual void allocate(const size_t length) = 0;
-	};
+        virtual void allocate(const size_t length) = 0;
+    };
+
 }
 
 #endif
