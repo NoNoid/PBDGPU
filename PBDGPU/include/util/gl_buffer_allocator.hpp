@@ -15,7 +15,8 @@ namespace pbdgpu
 			bufferID(0),
 			bufferTarget(GL_ARRAY_BUFFER),
 			bufferTargetBinding(GL_ARRAY_BUFFER_BINDING),
-			bufferUsage(GL_DYNAMIC_DRAW)
+            bufferUsage(GL_DYNAMIC_DRAW),
+            clSharingMem(nullptr)
 		{}
         virtual ~GLBufferAllocator();
 

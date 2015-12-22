@@ -44,7 +44,10 @@ namespace pbdgpu
 
     GLBufferAllocator::~GLBufferAllocator()
     {
-        clReleaseMemObject(clSharingMem);
+        if(clSharingMem)
+        {
+            clReleaseMemObject(clSharingMem);
+        }
         glDeleteBuffers(1,&bufferID);
     }
 
