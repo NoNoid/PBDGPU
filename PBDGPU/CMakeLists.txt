@@ -8,6 +8,8 @@ add_library(pbdgpu STATIC
 	include/util/gpu_mem_allocator.hpp
 	include/util/gl_buffer_allocator.hpp
 	src/util/gl_buffer_allocator.cpp
+        include/util/cl_buffer_allocator.hpp
+        src/util/cl_buffer_allocator.cpp
 	
 	include/util/functions.hpp
 	src/util/functions.cpp
