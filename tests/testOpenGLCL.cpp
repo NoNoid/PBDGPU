@@ -166,6 +166,7 @@ int main(int argc, char **argv)
         revdata[i] = testsize-1-i;
 	}
 
+
     pbdgpu::GLBufferAllocator gpumem(sizeof(int));
     gpumem.write(testsize,testdata);
 
@@ -241,4 +242,7 @@ int main(int argc, char **argv)
     {
       printf("gl_error: %d",gl_err);
     }
+
+    if(error != 0)
+        return -1;
 }
