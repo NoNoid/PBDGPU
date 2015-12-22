@@ -89,4 +89,8 @@ int main(int argc, char **argv)
     {
         return -1;
     }
+
+    clReleaseCommandQueue(queue);
+    clReleaseContext(GLCLContext);
+    clReleaseDevice(currentOGLDevice);
 }
