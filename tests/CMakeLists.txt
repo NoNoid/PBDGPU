@@ -5,7 +5,9 @@ find_package(GLUT REQUIRED)
 include_directories(${GLUT_INCLUDE_DIR} ../PBDGPU/external/clew/include ../PBDGPU/external/glew/include ../PBDGPU/include)
 
 add_executable(testOpenGLCL testOpenGLCL.cpp)
-
 target_link_libraries(testOpenGLCL ${GLUT_LIBRARIES} glew clew pbdgpu)
-
 add_test(interopTest testOpenGLCL)
+
+add_executable(bufferTest testBuffers.cpp)
+target_link_libraries(bufferTest ${GLUT_LIBRARIES} glew clew pbdgpu)
+add_test(bufferTest bufferTest)
