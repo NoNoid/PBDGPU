@@ -24,7 +24,6 @@ public:
     virtual void *map() override;
     virtual void unmap() override;
 
-    cl_event write(size_t numElems, const void *data, cl_uint numEventsInWaitList, const cl_event *eventWaitList);
 protected:
     virtual void allocate(const size_t length) override;
 
