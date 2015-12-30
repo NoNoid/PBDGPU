@@ -1,5 +1,9 @@
 #include <stdio.h>
+#include <fstream>
+#include <vector>
 #include <util/functions.hpp>
+
+#include <GL/glew.h>
 
 #ifdef _WIN32
 #   include <windows.h>
@@ -8,6 +12,8 @@
 #elif __APPLE__
 
 #endif
+
+using std::vector;
 
 cl_context_properties *pbdgpu::getOGLInteropInfo(cl_device_id &out_device)
 {
@@ -66,7 +72,101 @@ cl_context_properties *pbdgpu::getOGLInteropInfo(cl_device_id &out_device)
 		return out_properties;
 	}
 
-	printf("Could not find a OpenCL platform with active OpenGL interop device");
+    printf("Could not find a OpenCL platform with active OpenGL interop device");
 	
 	return nullptr;
+}
+
+string pbdgpu::readFile(const string filename)
+{
+    std::ifstream ifs(filename);
+    string content( (std::istreambuf_iterator<char>(ifs) ),
+                    (std::istreambuf_iterator<char>()    ) );
+    ifs.close();
+    return content;
+}
+
+unsigned int pbdgpu::createShader(const std::string filename, const unsigned int shaderType)
+{
+    unsigned int shaderID = glCreateShader(shaderType);
+    string shaderSource = readFile(filename);
+    const char* shaderSourcePtr = shaderSource.c_str();
+    const int sourceSize = shaderSource.size();
+
+    glShaderSource(shaderID, 1, &shaderSourcePtr, &sourceSize);
+    glCompileShader(shaderID);
+
+    GLint compilationSuccess = GL_FALSE;
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &compilationSuccess);
+    if(compilationSuccess == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
+
+        vector<char> errorLog(maxLength);
+        glGetShaderInfoLog(shaderID, maxLength, &maxLength, &errorLog[0]);
+
+        printf("%s",&errorLog[0]);
+
+        glDeleteShader(shaderID);
+        return 0;
+    }
+    return shaderID;
+}
+
+unsigned int pbdgpu::createProgram(const unsigned int vertexShader, const unsigned int hullShader, const unsigned int domainShader, const unsigned int fragmentShader)
+{
+    unsigned int programID = glCreateProgram();
+
+    if(glIsShader(vertexShader))
+    {
+      glAttachShader(programID,vertexShader);
+    }else{
+        printf("createProgram: vertex shader invalid but program needs vertex shader. Linking aborted\n");
+        return 0;
+    }
+
+    if(glIsShader(hullShader))
+    {
+        glAttachShader(programID,hullShader);
+    }
+
+    if(glIsShader(domainShader))
+    {
+        glAttachShader(programID,domainShader);
+    }
+
+    if(glIsShader(fragmentShader))
+    {
+        glAttachShader(programID,fragmentShader);
+    }else{
+        printf("createProgram: fragment shader invalid but program needs fragment shader. Linking aborted\n");
+        return 0;
+    }
+
+    glLinkProgram(programID);
+
+    GLint linkingSuccess = GL_FALSE;
+    glGetProgramiv(programID, GL_LINK_STATUS, &linkingSuccess);
+    if(linkingSuccess == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &maxLength);
+
+        vector<char> errorLog(maxLength);
+        glGetProgramInfoLog(programID, maxLength, &maxLength, &errorLog[0]);
+
+        printf("%s",&errorLog[0]);
+
+        glDeleteProgram(programID);
+
+        return 0;
+    }
+
+    glDetachShader(programID,vertexShader);
+    glDetachShader(programID,hullShader);
+    glDetachShader(programID,domainShader);
+    glDetachShader(programID,fragmentShader);
+
+    return programID;
 }

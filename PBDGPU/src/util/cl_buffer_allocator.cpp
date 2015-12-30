@@ -5,7 +5,7 @@ namespace pbdgpu
 
     CLBufferAllocator::~CLBufferAllocator()
     {
-        clReleaseMemObject(buffer);
+
     }
 
     void CLBufferAllocator::write(size_t numElems, const void *data)
@@ -58,4 +58,12 @@ namespace pbdgpu
         buffer = clCreateBuffer(context, memFlags, sizeOfElement*length, nullptr, nullptr);
     }
 
+    void CLBufferAllocator::free()
+    {
+        if(buffer)
+            clReleaseMemObject(buffer);
+    }
+
 }
+
+

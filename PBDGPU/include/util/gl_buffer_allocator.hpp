@@ -24,7 +24,7 @@ namespace pbdgpu
 			bufferTargetBinding(GL_ARRAY_BUFFER_BINDING),
             bufferUsage(GL_DYNAMIC_DRAW),
             clSharingMem(nullptr)
-		{}
+        {}
         virtual ~GLBufferAllocator();
 
         /** @fn inline GLuint getBufferID()
@@ -53,9 +53,11 @@ namespace pbdgpu
 
 		virtual void unmap() override;
 
+        virtual void free() override;
+
 	protected:
 
-		void allocate(const size_t length) override;
+        void allocate(const size_t length) override;
 
 	private:
 		GLuint bufferID;
@@ -63,8 +65,9 @@ namespace pbdgpu
 		GLenum bufferTargetBinding;
 		GLenum bufferUsage;
 
-		cl_mem clSharingMem;
-	};
+        cl_mem clSharingMem = nullptr;
+
+    };
 }
 
 #endif

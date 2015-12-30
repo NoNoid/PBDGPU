@@ -57,6 +57,7 @@ namespace pbdgpu
          */
         virtual void unmap() = 0;
 
+        virtual void free() = 0;
 
 	protected:
         /**
@@ -75,6 +76,7 @@ namespace pbdgpu
          * @param newLength number of Elemnts the new buffer should have.
          */
         virtual void allocate(const size_t newLength) = 0;
+
     };
 
 }

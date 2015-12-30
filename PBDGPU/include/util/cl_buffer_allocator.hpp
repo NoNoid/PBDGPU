@@ -35,11 +35,14 @@ public:
 
     virtual void unmap() override;
 
+    virtual void free() override;
+
 protected:
+
     virtual void allocate(const size_t length) override;
 
 private:
-    cl_mem buffer;
+    cl_mem buffer = nullptr;
     cl_context context;
     cl_command_queue commandQueue;
     cl_mem_flags memFlags;

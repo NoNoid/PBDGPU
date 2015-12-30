@@ -1,7 +1,11 @@
 #ifndef _UTILITY_FUNCTIONS_HPP_
 #define _UTILITY_FUNCTIONS_HPP_
 
+#include <string>
+
 #include <clew.h>
+
+using std::string;
 
 /** @file
  * Contains utility functions
@@ -20,5 +24,15 @@ namespace pbdgpu
      * @return OpenCl context properties which are needed to correctly initialse the a GL-CL-Interop context.
      */
     cl_context_properties * getOGLInteropInfo(cl_device_id &out_device);
+
+    string readFile(const string filename);
+
+    unsigned int createShader(const string filename, const unsigned int shaderType);
+
+    unsigned int createProgram(
+            const unsigned int vertexShader,
+            const unsigned int hullShader,
+            const unsigned int domainShader,
+            const unsigned int fragmentShader);
 }
 #endif
