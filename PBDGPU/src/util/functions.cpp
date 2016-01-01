@@ -72,7 +72,7 @@ cl_context_properties *pbdgpu::getOGLInteropInfo(cl_device_id &out_device)
 		return out_properties;
 	}
 
-    printf("Could not find a OpenCL platform with active OpenGL interop device");
+	fprintf(stderr,"Could not find a OpenCL platform with active OpenGL interop device.\nPlease Install the required OpenCL SDK's for your GPU or activate your preffered GPU (Dual-GPU Laptop)\n.");
 	
 	return nullptr;
 }

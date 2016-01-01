@@ -77,6 +77,11 @@ int main(int argc, char **argv)
 
     cl_device_id currentOGLDevice;
     cl_context_properties* properties = pbdgpu::getOGLInteropInfo(currentOGLDevice);
+	if (!properties)
+	{
+		// if properties if null abort test because no CLGL interop device could be found
+		return -1;
+	}
     cl_context GLCLContext = clCreateContext(properties, 1, &currentOGLDevice, nullptr, nullptr, nullptr);
     cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, nullptr);
 
