@@ -17,14 +17,14 @@ namespace pbdgpu
          * @brief A Constructor for GLBufferAllocator.
          * @param sizeOfElement Size of one Element in bytes.
          */
-		GLBufferAllocator(const size_t sizeOfElement) : 
-			GPUMemAllocator(sizeOfElement),
+        GLBufferAllocator(const size_t sizeOfElement = 0, const size_t size = 0) :
 			bufferID(0),
 			bufferTarget(GL_ARRAY_BUFFER),
 			bufferTargetBinding(GL_ARRAY_BUFFER_BINDING),
             bufferUsage(GL_DYNAMIC_DRAW),
             clSharingMem(nullptr)
-        {}
+        {allocate(sizeOfElement,size);}
+
         virtual ~GLBufferAllocator();
 
         /** @fn inline GLuint getBufferID()
@@ -55,9 +55,7 @@ namespace pbdgpu
 
         virtual void free() override;
 
-	protected:
-
-        void allocate(const size_t size) override;
+        void allocate(const size_t sizeOfElement, const size_t size) override;
 
 	private:
 		GLuint bufferID;

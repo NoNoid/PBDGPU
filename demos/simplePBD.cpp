@@ -27,7 +27,7 @@ static struct buffers
 {
     unsigned int particlesVAO = 0;
     const size_t positions_size = 200;
-    pbdgpu::GLBufferAllocator positions = pbdgpu::GLBufferAllocator(sizeof(cl_float3));
+    pbdgpu::GLBufferAllocator positions = pbdgpu::GLBufferAllocator();
 
     unsigned int cameraBuffer = 0;
 } buffers;
@@ -249,6 +249,7 @@ int main(int argc, char *argv[])
         pos[i].w = 1.0f;        
     }
 
+    buffers.positions.allocate(sizeof(cl_float4),buffers.positions_size);
     buffers.positions.write(buffers.positions_size,pos);
 
     glGenVertexArrays(1,&buffers.particlesVAO);

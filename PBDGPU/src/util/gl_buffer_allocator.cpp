@@ -28,8 +28,12 @@ namespace pbdgpu
 		glBindBuffer(bufferTarget, previousBuffer);
 	}
 
-	void GLBufferAllocator::allocate(const size_t length)
+    void GLBufferAllocator::allocate(const size_t sizeOfElement, const size_t length)
 	{
+        GPUMemAllocator::allocate(sizeOfElement,length);
+
+        if(getSizeinBytes() == 0) return;
+
 		if (!glIsBuffer(bufferID))
 		{
 			glGenBuffers(1, &bufferID);
@@ -38,31 +42,32 @@ namespace pbdgpu
 		GLint previousBuffer;
 		glGetIntegerv(bufferTargetBinding, &previousBuffer);
 		glBindBuffer(bufferTarget, bufferID);
-		glBufferData(bufferTarget, sizeOfElement*length, nullptr, bufferUsage);
+        glBufferData(bufferTarget, getSizeinBytes(), nullptr, bufferUsage);
 		glBindBuffer(bufferTarget, previousBuffer);
 	}
 
     GLBufferAllocator::~GLBufferAllocator()
-    {
-
+    {        
+        free();
     }
 
     void GLBufferAllocator::write(size_t numElems, const void *data)
 	{
 		if (numElems > size)
 		{
-			setLength(numElems);
+            return;
 		}
 		GLint previousBuffer;
 		glGetIntegerv(bufferTargetBinding, &previousBuffer);
 		glBindBuffer(bufferTarget, bufferID);
-		glBufferSubData(bufferTarget, 0, size*sizeOfElement, data);
+        glBufferSubData(bufferTarget, 0, getSizeinBytes(), data);
 		glBindBuffer(bufferTarget, previousBuffer);
     }
 
 
     void GLBufferAllocator::free()
     {
+        GPUMemAllocator::free();
         if(clSharingMem)
         {
             clReleaseMemObject(clSharingMem);

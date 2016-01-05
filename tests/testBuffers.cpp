@@ -65,10 +65,18 @@ int main(int argc, char **argv)
     }
 
     bool testSuccessful = true;
-    pbdgpu::GPUMemAllocator *buffer =  new pbdgpu::GLBufferAllocator(sizeOfElement);
+    pbdgpu::GLBufferAllocator *buffer1 =  new pbdgpu::GLBufferAllocator(sizeOfElement,numELems);
 
-    testSuccessful = testBuffer<int>(buffer,numELems,data);
-    delete buffer;
+    testSuccessful = testBuffer<int>(buffer1,numELems,data);
+
+    buffer1->free();
+
+    if(glIsBuffer(buffer1->getBufferID()))
+    {
+        return -1;
+    }
+
+    delete buffer1;
 
     if(!testSuccessful)
     {
@@ -85,10 +93,18 @@ int main(int argc, char **argv)
     cl_context GLCLContext = clCreateContext(properties, 1, &currentOGLDevice, nullptr, nullptr, nullptr);
     cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, nullptr);
 
-    buffer = new pbdgpu::CLBufferAllocator(sizeOfElement,GLCLContext,queue);
+    pbdgpu::CLBufferAllocator* buffer2 = new pbdgpu::CLBufferAllocator(GLCLContext,queue,sizeOfElement,numELems);
 
-    testSuccessful = testBuffer<int>(buffer,numELems,data);
-    delete buffer;
+    testSuccessful = testBuffer<int>(buffer2,numELems,data);
+
+    buffer2->free();
+
+    if(clReleaseMemObject(buffer2->getCLMem()) != CL_INVALID_MEM_OBJECT)
+    {
+        return -1;
+    }
+
+    delete buffer2;
 
     if(!testSuccessful)
     {

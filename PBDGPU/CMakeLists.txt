@@ -6,6 +6,7 @@ include_directories(include external/clew/include external/glew/include)
 
 add_library(pbdgpu STATIC
 	include/util/gpu_mem_allocator.hpp
+        src/util/gpu_mem_allocator.cpp
 	include/util/gl_buffer_allocator.hpp
 	src/util/gl_buffer_allocator.cpp
         include/util/cl_buffer_allocator.hpp

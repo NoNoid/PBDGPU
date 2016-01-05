@@ -18,14 +18,15 @@ public:
      * @param context An OpenCL context.
      * @param commandQueue An OpenCL command queue.
      */
-    CLBufferAllocator(const size_t sizeOfElement,cl_context context,cl_command_queue commandQueue) :
-        GPUMemAllocator(sizeOfElement),
+    CLBufferAllocator(cl_context context, cl_command_queue commandQueue, const size_t sizeOfElement = 0, const size_t size = 0) :
         context(context),
         commandQueue(commandQueue),
         memFlags(CL_MEM_READ_WRITE)
+    {allocate(sizeOfElement,size);}
 
-    {}
     virtual ~CLBufferAllocator();
+
+    const cl_mem &getCLMem() {return buffer;}
 
     // GPUMemAllocator interface
 
@@ -37,9 +38,7 @@ public:
 
     virtual void free() override;
 
-protected:
-
-    virtual void allocate(const size_t size) override;
+    virtual void allocate(const size_t sizeOfElement, const size_t size) override;
 
 private:
     cl_mem buffer = nullptr;

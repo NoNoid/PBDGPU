@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 	}
 
 
-    pbdgpu::GLBufferAllocator gpumem(sizeof(int));
+    pbdgpu::GLBufferAllocator gpumem(sizeof(int),testsize);
     gpumem.write(testsize,testdata);
 
 	glFinish();

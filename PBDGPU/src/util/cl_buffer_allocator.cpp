@@ -5,13 +5,13 @@ namespace pbdgpu
 
     CLBufferAllocator::~CLBufferAllocator()
     {
-
+        free();
     }
 
     void CLBufferAllocator::write(size_t numElems, const void *data)
     {
         if(size != numElems)
-            setLength(numElems);
+            return;
 
         clEnqueueWriteBuffer(
             commandQueue,
@@ -53,15 +53,20 @@ namespace pbdgpu
         mappedPtr = nullptr;
     }
 
-    void CLBufferAllocator::allocate(const size_t length)
+    void CLBufferAllocator::allocate(const size_t sizeOfElement, const size_t length)
     {
-        buffer = clCreateBuffer(context, memFlags, sizeOfElement*length, nullptr, nullptr);
+        GPUMemAllocator::allocate(sizeOfElement,length);
+        buffer = clCreateBuffer(context, memFlags, getSizeinBytes(), nullptr, nullptr);
     }
 
     void CLBufferAllocator::free()
     {
+        GPUMemAllocator::free();
         if(buffer)
+        {
             clReleaseMemObject(buffer);
+            buffer = nullptr;
+        }
     }
 
 }
