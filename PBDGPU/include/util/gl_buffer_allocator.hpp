@@ -16,6 +16,7 @@ namespace pbdgpu
         /** @fn GLBufferAllocator(const size_t sizeOfElement)
          * @brief A Constructor for GLBufferAllocator.
          * @param sizeOfElement Size of one Element in bytes.
+         * @param size Number of Elements in the buffer.
          */
         GLBufferAllocator(const size_t sizeOfElement = 0, const size_t size = 0) :
 			bufferID(0),

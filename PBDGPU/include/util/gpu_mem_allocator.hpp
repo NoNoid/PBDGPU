@@ -15,7 +15,7 @@ namespace pbdgpu
 
         virtual ~GPUMemAllocator() {}
 
-        /** @fn inline size_t getLength() const
+        /** @fn inline size_t getSize() const
          * @brief Get number of elements in the buffer.
          * @return The number of ements in the buffer.
          */
@@ -47,12 +47,21 @@ namespace pbdgpu
 
         /**
          * @brief Allocates memory for the buffer.
-         * @param newLength number of Elemnts the new buffer should have.
+         * @param size number of Elemnts the new buffer should have.
+         * @param sizeOfElement Size in bytes of a single element.
          */
         virtual void allocate(const size_t sizeOfElement, const size_t size);
 
+        /**
+         * @fn virtual void free()
+         * Deallocates the buffer.
+         */
         virtual void free();
 
+        /**
+         * @fn size_t getSizeinBytes()
+         * @return Size of the buffer in bytes.
+         */
         size_t getSizeinBytes();
 
 	protected:

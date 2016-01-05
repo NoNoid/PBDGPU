@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
     GLuint uniformBlockIndex = glGetUniformBlockIndex(shaders.particleShaderProgram,"globalMatrices");
     if(uniformBlockIndex == GL_INVALID_INDEX)
     {
-        fprintf(stderr, "Failed to Uniform Block Index: %s\n", "globalMatrices");
+        fprintf(stderr, "Failed to get Uniform Block Index: %s\n", "globalMatrices");
         exit(1);
     }
     glUniformBlockBinding(shaders.particleShaderProgram, uniformBlockIndex, 0);

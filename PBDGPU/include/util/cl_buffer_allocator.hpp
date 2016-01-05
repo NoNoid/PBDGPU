@@ -17,6 +17,7 @@ public:
      * @param sizeOfElement The size in bytes of one element of the buffer.
      * @param context An OpenCL context.
      * @param commandQueue An OpenCL command queue.
+     * @param size Number of Elements in the buffer.
      */
     CLBufferAllocator(cl_context context, cl_command_queue commandQueue, const size_t sizeOfElement = 0, const size_t size = 0) :
         context(context),
@@ -26,6 +27,10 @@ public:
 
     virtual ~CLBufferAllocator();
 
+    /**
+     * @fn const cl_mem &getCLMem()
+     * @return Const Reference to the underlying cl_mem.
+     */
     const cl_mem &getCLMem() {return buffer;}
 
     // GPUMemAllocator interface

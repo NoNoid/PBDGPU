@@ -25,10 +25,33 @@ namespace pbdgpu
      */
     cl_context_properties * getOGLInteropInfo(cl_device_id &out_device);
 
+    /** @fn string readFile(const string filename);
+     * Open the specified file and reads its contents.
+     * @param filename The filename can be relative or absolut.
+     * @return contents of the file
+     */
     string readFile(const string filename);
 
+    /**
+     * @fn unsigned int createShader(const string filename, const unsigned int shaderType)
+     * @param filename The filename of the Shader can be realtive or absolute.
+     * @param shaderType Type of the Shader. Allowed values are GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER.
+     * @return id of the shader or 0 if creation failed.
+     */
     unsigned int createShader(const string filename, const unsigned int shaderType);
 
+    /**
+     * @fn unsigned int createProgram(
+            const unsigned int vertexShader,
+            const unsigned int hullShader,
+            const unsigned int domainShader,
+            const unsigned int fragmentShader)
+     * @param vertexShader Id of a shader of type GL_VERTEX_SHADER. Must be valid.
+     * @param hullShader Id of a shader of type GL_TESS_CONTROL_SHADER. Will be ignored if invalid.
+     * @param domainShader Id of a shader of type GL_TESS_EVALUATION_SHADER. Will be ignored if invalid.
+     * @param fragmentShader Id of Shader of type GL_FRAGMENT_SHADER. Must be valid.
+     * @return id of the program or 0 if creation failed.
+     */
     unsigned int createProgram(
             const unsigned int vertexShader,
             const unsigned int hullShader,
