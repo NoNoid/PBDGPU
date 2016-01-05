@@ -219,6 +219,9 @@ int main(int argc, char *argv[])
 
     glewInit();
 
+    glEnable(GL_POINT_SMOOTH);
+    glPointSize(5.0f);
+
     shaders.vertexShader = pbdgpu::createShader("shaders/particle.vert",GL_VERTEX_SHADER);
     shaders.fragmentShader = pbdgpu::createShader("shaders/particle.frag",GL_FRAGMENT_SHADER);
     shaders.particleShaderProgram = pbdgpu::createProgram(shaders.vertexShader,0,0,shaders.fragmentShader);

@@ -11,5 +11,4 @@ layout(std140) uniform globalMatrices
 void main()
 {
     gl_Position = Projection * View * position;
-    gl_PointSize = 20.0f;
 }
