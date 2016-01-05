@@ -49,14 +49,14 @@ namespace pbdgpu
 
     void GLBufferAllocator::write(size_t numElems, const void *data)
 	{
-		if (numElems > length)
+		if (numElems > size)
 		{
 			setLength(numElems);
 		}
 		GLint previousBuffer;
 		glGetIntegerv(bufferTargetBinding, &previousBuffer);
 		glBindBuffer(bufferTarget, bufferID);
-		glBufferSubData(bufferTarget, 0, length*sizeOfElement, data);
+		glBufferSubData(bufferTarget, 0, size*sizeOfElement, data);
 		glBindBuffer(bufferTarget, previousBuffer);
     }
 

@@ -57,7 +57,7 @@ namespace pbdgpu
 
 	protected:
 
-        void allocate(const size_t length) override;
+        void allocate(const size_t size) override;
 
 	private:
 		GLuint bufferID;

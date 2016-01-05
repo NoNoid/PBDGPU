@@ -11,13 +11,13 @@ namespace pbdgpu
 	class GPUMemAllocator
 	{
 	public:   
-		GPUMemAllocator() : sizeOfElement(0),length(0) {}
+        GPUMemAllocator() : sizeOfElement(0),size(0) {}
 
         /** @fn GPUMemAllocator(const size_t sizeOfElement)
          * @brief A constructor for GPUMemAllocator.
          * @param sizeOfElement Size for one Element of the buffer.
          */
-		GPUMemAllocator(const size_t sizeOfElement) : sizeOfElement(sizeOfElement), length(0){}
+        GPUMemAllocator(const size_t sizeOfElement) : sizeOfElement(sizeOfElement), size(0){}
 
         virtual ~GPUMemAllocator() {}
 
@@ -25,13 +25,13 @@ namespace pbdgpu
          * @brief Sets number of Elements of the buffer.
          * @param newLength The number of elements the buffer should have after this.
          */
-		inline void setLength(const size_t newLength) { length = newLength; allocate(length); }
+        inline void setLength(const size_t newLength) { size = newLength; allocate(size); }
 
         /** @fn inline size_t getLength() const
          * @brief Get number of elements in the buffer.
          * @return The number of ements in the buffer.
          */
-		inline size_t getLength() const { return length; }
+        inline size_t getLength() const { return size; }
 
         /** @fn inline size_t getSizeOfElement() const
          * @brief Gets the size in bytes of one element of the buffer.
@@ -57,6 +57,12 @@ namespace pbdgpu
          */
         virtual void unmap() = 0;
 
+        /**
+         * @brief Allocates memory for the buffer.
+         * @param newLength number of Elemnts the new buffer should have.
+         */
+        virtual void allocate(const size_t sizeOfElement, const size_t size) = 0;
+
         virtual void free() = 0;
 
 	protected:
@@ -66,16 +72,10 @@ namespace pbdgpu
          */
 		const size_t sizeOfElement;
         /**
-         * @brief length
+         * @brief size
          * Number of elements in buffer.
          */
-		size_t length;
-
-        /**
-         * @brief Allocates memory for the buffer.
-         * @param newLength number of Elemnts the new buffer should have.
-         */
-        virtual void allocate(const size_t newLength) = 0;
+        size_t size;
 
     };
 

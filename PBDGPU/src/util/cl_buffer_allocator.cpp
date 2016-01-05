@@ -10,7 +10,7 @@ namespace pbdgpu
 
     void CLBufferAllocator::write(size_t numElems, const void *data)
     {
-        if(length != numElems)
+        if(size != numElems)
             setLength(numElems);
 
         clEnqueueWriteBuffer(
@@ -18,7 +18,7 @@ namespace pbdgpu
             buffer,
             true,
             0,
-            length*sizeOfElement,
+            size*sizeOfElement,
             data,
             0,
             nullptr,
@@ -33,7 +33,7 @@ namespace pbdgpu
             true,
             CL_MAP_WRITE,
             0,
-            sizeOfElement*length,
+            sizeOfElement*size,
             0,
             nullptr,
             nullptr,

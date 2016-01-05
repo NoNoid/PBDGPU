@@ -39,7 +39,7 @@ public:
 
 protected:
 
-    virtual void allocate(const size_t length) override;
+    virtual void allocate(const size_t size) override;
 
 private:
     cl_mem buffer = nullptr;
