@@ -86,10 +86,9 @@ string pbdgpu::readFile(const string filename)
     return content;
 }
 
-unsigned int pbdgpu::createShader(const string filename, const unsigned int shaderType)
+unsigned int pbdgpu::createShader(const string shaderSource, const unsigned int shaderType)
 {
     unsigned int shaderID = glCreateShader(shaderType);
-    string shaderSource = readFile(filename);
     const char* shaderSourcePtr = shaderSource.c_str();
     const int sourceSize = shaderSource.size();
 
