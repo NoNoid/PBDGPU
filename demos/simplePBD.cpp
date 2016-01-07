@@ -20,14 +20,16 @@
 #include <util/gl_buffer_allocator.hpp>
 #include <util/cl_buffer_allocator.hpp>
 
+#include <kernelInclude/particle.h>
+
 using glm::vec3;
 using glm::mat4;
 
 static struct buffers
 {
     unsigned int particlesVAO = 0;
-    const size_t positions_size = 200;
-    pbdgpu::GLBufferAllocator positions = pbdgpu::GLBufferAllocator();
+    const size_t particles_size = 200;
+    pbdgpu::GLBufferAllocator particles = pbdgpu::GLBufferAllocator();
 
     unsigned int cameraBuffer = 0;
 } buffers;
@@ -181,7 +183,7 @@ void display(void) {
     //glBindBuffer(GL_ARRAY_BUFFER,buffers.positions.getBufferID());
 
     glBindVertexArray(buffers.particlesVAO);
-    glDrawArrays(GL_POINTS,0,buffers.positions_size);
+    glDrawArrays(GL_POINTS,0,buffers.particles_size);
 
     //glBindBuffer(GL_ARRAY_BUFFER,0);
     glUseProgram(0);
@@ -195,7 +197,7 @@ void atClose()
 
     glDeleteBuffers(1,&buffers.cameraBuffer);
 
-    buffers.positions.free();
+    buffers.particles.free();
 }
 
 int main(int argc, char *argv[])
@@ -239,23 +241,23 @@ int main(int argc, char *argv[])
 
     // init buffers
 
-    cl_float4* pos = new cl_float4[buffers.positions_size];
+    particle* pos = new particle[buffers.particles_size];
 
-    for( int i = 0; i < buffers.positions_size; ++i)
+    for( int i = 0; i < buffers.particles_size; ++i)
     {
-        pos[i].x = float(i)-100.0f;
-        pos[i].y = 10.0f;
-        pos[i].z = 0.0f;
-        pos[i].w = 1.0f;        
+        pos[i].x.x = float(i)-100.0f;
+        pos[i].x.y = 10.0f;
+        pos[i].x.z = 0.0f;
+        pos[i].x.w = 1.0f;
     }
 
-    buffers.positions.allocate(sizeof(cl_float4),buffers.positions_size);
-    buffers.positions.write(buffers.positions_size,pos);
+    buffers.particles.allocate(sizeof(particle),buffers.particles_size);
+    buffers.particles.write(buffers.particles_size,pos);
 
     glGenVertexArrays(1,&buffers.particlesVAO);
-    glBindBuffer(GL_ARRAY_BUFFER,buffers.positions.getBufferID());
+    glBindBuffer(GL_ARRAY_BUFFER,buffers.particles.getBufferID());
     glBindVertexArray(buffers.particlesVAO);
-    glVertexAttribPointer(0,4,GL_FLOAT,GL_FALSE,0,NULL);
+    glVertexAttribPointer(0,4,GL_FLOAT,GL_FALSE,sizeof(particle),NULL);
     glEnableVertexAttribArray(0);
 
     glGenBuffers(1, &buffers.cameraBuffer);

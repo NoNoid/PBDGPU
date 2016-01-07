@@ -11,6 +11,8 @@ add_library(pbdgpu STATIC
 	src/util/gl_buffer_allocator.cpp
         include/util/cl_buffer_allocator.hpp
         src/util/cl_buffer_allocator.cpp
+
+        include/kernelInclude/particle.h
 	
 	include/util/functions.hpp
 	src/util/functions.cpp
