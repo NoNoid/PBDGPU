@@ -71,6 +71,7 @@ namespace pbdgpu
         if(clSharingMem)
         {
             clReleaseMemObject(clSharingMem);
+            clSharingMem = nullptr;
         }
         glDeleteBuffers(1,&bufferID);
     }
