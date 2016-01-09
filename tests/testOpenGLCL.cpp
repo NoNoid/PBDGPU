@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <iostream>
-
+#include <vector>
 
 #include <GL/glew.h>
 
@@ -15,6 +15,8 @@
 #include <clew.h>
 #include <util/functions.hpp>
 #include <util/gl_buffer_allocator.hpp>
+
+using std::vector;
 
 int main(int argc, char **argv)
 {	
@@ -54,9 +56,9 @@ int main(int argc, char **argv)
 	printf("\nOpenCL\n");
 	printf("Number of Platforms: %d\n", numPlaforms);
 
-	cl_platform_id* platforms = new cl_platform_id[numPlaforms];
+    vector<cl_platform_id> platforms(numPlaforms);
 
-	clGetPlatformIDs(numPlaforms, platforms, NULL);
+    clGetPlatformIDs(numPlaforms, &platforms[0], NULL);
 
 	char buffer[10240];
 	for (cl_uint i = 0; i < numPlaforms; ++i)
@@ -100,9 +102,9 @@ int main(int argc, char **argv)
 
 		printf("\n\t%d Device(s) detected.\n", numDevices);
 
-		cl_device_id* devices = new cl_device_id[numDevices];
+        vector<cl_device_id> devices(numDevices);
 
-		clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, numDevices, devices, &numDevices);
+        clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, numDevices, &devices[0], &numDevices);
 
 		for (cl_uint i = 0; i < numDevices; ++i)
 		{
@@ -142,7 +144,7 @@ int main(int argc, char **argv)
 	}
 
     cl_device_id currentOGLDevice;
-    cl_context_properties* properties = pbdgpu::getOGLInteropInfo(currentOGLDevice);
+    vector<cl_context_properties> properties = pbdgpu::getOGLInteropInfo(currentOGLDevice);
 
     printf("\n\n\tCurrent OGL Interop Device:\n");
     cl_err = clGetDeviceInfo(
@@ -153,12 +155,12 @@ int main(int argc, char **argv)
         NULL);
     printf("\tDevice Name:\t%s\n", buffer);
 
-    cl_context GLCLContext = clCreateContext(properties, 1, &currentOGLDevice, NULL, NULL, &cl_err);
+    cl_context GLCLContext = clCreateContext(&properties[0], 1, &currentOGLDevice, NULL, NULL, &cl_err);
 
 	const size_t testsize = 1024;
 
-	int* testdata = new int[testsize];
-    int* revdata = new int[testsize];
+    vector<int> testdata(testsize);
+    vector<int> revdata(testsize);
 
 	for (int i = 0; i < testsize; ++i)
 	{
@@ -168,7 +170,7 @@ int main(int argc, char **argv)
 
 
     pbdgpu::GLBufferAllocator gpumem(sizeof(int),testsize);
-    gpumem.write(testsize,testdata);
+    gpumem.write(testsize,&testdata[0]);
 
 	glFinish();
 
@@ -226,6 +228,8 @@ int main(int argc, char **argv)
     {
         error = abs(data[i]-revdata[i]);
     }
+
+    gpumem.unmap();
 
     printf("\nComputation Error: %d\n",error);
 

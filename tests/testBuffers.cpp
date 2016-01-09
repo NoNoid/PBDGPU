@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <cstring>
 #include <random>
+#include <vector>
 
 #include <GL/glew.h>
 
@@ -15,18 +16,19 @@
 #include <util/gl_buffer_allocator.hpp>
 #include <util/cl_buffer_allocator.hpp>
 
+using std::vector;
+
 template <typename T>
-bool testBuffer(pbdgpu::GPUMemAllocator* buffer, size_t numElems, void* data)
+bool testBuffer(pbdgpu::GPUMemAllocator* buffer, size_t numElems, vector<T> data)
 {
-    buffer->write(numElems,data);
+    buffer->write(numElems,&data[0]);
 
     T* mappedPtr =  reinterpret_cast<T*>(buffer->map());
-    T* castedPtr = reinterpret_cast<T*>(data);
 
     bool result = true;
     for(size_t i = 0; i < numElems; ++i)
     {
-        result &= (mappedPtr[i] == castedPtr[i]);
+        result &= (mappedPtr[i] == data[i]);
     }
 
     buffer->unmap();
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int> dist(-100, 100);
 
-    int* data = new int[numELems];
+    vector<int> data(numELems);
 
     for (size_t i=0; i<numELems; ++i)
     {
@@ -84,13 +86,13 @@ int main(int argc, char **argv)
     }
 
     cl_device_id currentOGLDevice;
-    cl_context_properties* properties = pbdgpu::getOGLInteropInfo(currentOGLDevice);
-	if (!properties)
+    vector<cl_context_properties> properties = pbdgpu::getOGLInteropInfo(currentOGLDevice);
+    if (properties.empty())
 	{
 		// if properties if null abort test because no CLGL interop device could be found
 		return -1;
 	}
-    cl_context GLCLContext = clCreateContext(properties, 1, &currentOGLDevice, nullptr, nullptr, nullptr);
+    cl_context GLCLContext = clCreateContext(&properties[0], 1, &currentOGLDevice, nullptr, nullptr, nullptr);
     cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, nullptr);
 
     pbdgpu::CLBufferAllocator* buffer2 = new pbdgpu::CLBufferAllocator(GLCLContext,queue,sizeOfElement,numELems);

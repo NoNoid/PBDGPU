@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <fstream>
-#include <vector>
 #include <util/functions.hpp>
 
 #include <GL/glew.h>
@@ -13,18 +12,16 @@
 
 #endif
 
-using std::vector;
-
-cl_context_properties *pbdgpu::getOGLInteropInfo(cl_device_id &out_device)
+vector<cl_context_properties> pbdgpu::getOGLInteropInfo(cl_device_id &out_device)
 {
 	cl_device_id currentOGLDevice;
 	cl_uint num_platforms;
 
 	clGetPlatformIDs(0, nullptr, &num_platforms);
 
-	cl_platform_id *platforms = new cl_platform_id[num_platforms];
+    vector<cl_platform_id> platforms(num_platforms);
 
-	clGetPlatformIDs(num_platforms, platforms, nullptr);
+    clGetPlatformIDs(num_platforms, &platforms[0], nullptr);
 
 	for (unsigned int i = 0; i < num_platforms; ++i)
 	{
@@ -36,7 +33,7 @@ cl_context_properties *pbdgpu::getOGLInteropInfo(cl_device_id &out_device)
 		}
 
 		// set up the required properties for 'clGetGLContextInfoKHR' and creation of a shared GL CL Context
-		cl_context_properties properties[] = {
+        vector<cl_context_properties> properties = {
 #ifdef _WIN32
 			CL_GL_CONTEXT_KHR, reinterpret_cast<cl_context_properties>(wglGetCurrentContext()),
 			CL_WGL_HDC_KHR, reinterpret_cast<cl_context_properties>(wglGetCurrentDC()),
@@ -53,7 +50,7 @@ cl_context_properties *pbdgpu::getOGLInteropInfo(cl_device_id &out_device)
 		};
 
 		size_t param_value_size_ret;
-		clGetGLContextInfoKHR(properties, CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR, sizeof(cl_device_id), &currentOGLDevice, &param_value_size_ret);
+        clGetGLContextInfoKHR(&properties[0], CL_CURRENT_DEVICE_FOR_GL_CONTEXT_KHR, sizeof(cl_device_id), &currentOGLDevice, &param_value_size_ret);
 
 		// This means for the current platform exists no which is currently associated with a OpenGL Context
 		// -> Continue with next platform
@@ -62,19 +59,12 @@ cl_context_properties *pbdgpu::getOGLInteropInfo(cl_device_id &out_device)
 		// A suitable device was found
 		out_device = currentOGLDevice;
 
-		// Write found Context properties to output
-		unsigned int length = (sizeof(properties) / sizeof(*properties));
-		cl_context_properties *out_properties = new cl_context_properties[length];
-		for (unsigned int i = 0; i < length; ++i)
-		{
-			out_properties[i] = properties[i];
-		}
-		return out_properties;
+        return properties;
 	}
 
 	fprintf(stderr,"Could not find a OpenCL platform with active OpenGL interop device.\nPlease Install the required OpenCL SDK's for your GPU or activate your preffered GPU (Dual-GPU Laptop)\n.");
 	
-	return nullptr;
+    return vector<cl_context_properties>();
 }
 
 string pbdgpu::readFile(const string filename)
@@ -183,17 +173,17 @@ cl_kernel pbdgpu::createKernel(string kernelSource,string buildOptions, string k
     if(err != 0)
     {
         size_t len;
-        clGetProgramBuildInfo(kernelProgram, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
-        char *BLog = new char[len];
-        clGetProgramBuildInfo(kernelProgram, device, CL_PROGRAM_BUILD_LOG, len, BLog, NULL);
         size_t retSourceSize;
-        err = clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,NULL,NULL,&retSourceSize);
-        char *retSource = new char[retSourceSize];
-        err = clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,retSourceSize,retSource,NULL);
-        fprintf(stderr,"In Kernel Source ... \n\n%s\n\n ... occured the following Errors:\n\n%s", retSource,BLog);
+        clGetProgramBuildInfo(kernelProgram, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);        
+        clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,NULL,NULL,&retSourceSize);
 
-        delete[] BLog;
-        delete[] retSource;
+        vector<char> BLog(len);
+        vector<char> retSource(retSourceSize);
+        clGetProgramBuildInfo(kernelProgram, device, CL_PROGRAM_BUILD_LOG, len, &BLog[0], NULL);
+        clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,retSourceSize,&retSource[0],NULL);
+
+        fprintf(stderr,"In Kernel Source ... \n\n%s\n\n ... occured the following Errors:\n\n%s", &retSource[0],&BLog[0]);
+
         return nullptr;
     }
 
