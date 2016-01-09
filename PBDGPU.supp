@@ -1,0 +1,227 @@
+{
+   <fglrx_dri.so_cond>
+   Memcheck:Cond
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+
+{
+   <fglrx_dri.so_leak_posible_malloc>
+   Memcheck:Leak
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+
+{
+   <libamdocl64.so_cond>
+   Memcheck:Cond
+   ...
+   obj:/usr/lib/libamdocl64.so
+}
+
+{
+   <libamdocl64.so_leak_posiible_malloc>
+   Memcheck:Leak
+   ...
+   obj:/usr/lib/libamdocl64.so
+}
+
+{
+   <libamdocl64.so_addr8_memcpy@GLIBC_2.2.5>
+   Memcheck:Addr8
+   ...
+   obj:/usr/lib/libamdocl64.so
+}
+
+{
+   <libamdocl64.so_addr2_memcpy@GLIBC_2.2.5>
+   Memcheck:Addr2
+   ...
+   obj:/usr/lib/libamdocl64.so
+}
+
+{
+   <fglrx_dri.so_value16>
+   Memcheck:Value16
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_value8>
+   Memcheck:Value8
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_value4>
+   Memcheck:Value4
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_value2>
+   Memcheck:Value2
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_value1>
+   Memcheck:Value1
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_addr16>
+   Memcheck:Addr16
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_addr8>
+   Memcheck:Addr8
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_addr4>
+   Memcheck:Addr4
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_addr2>
+   Memcheck:Addr2
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <fglrx_dri.so_addr1>
+   Memcheck:Addr1
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+
+{
+   <libGL.so.1.2_leak>
+   Memcheck:Leak
+   ...
+   obj:/usr/lib/fglrx/libGL.so.1.2
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr16
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr2
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr1
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   write(buf)
+   ...
+   obj:/usr/lib/libamdocl64.so
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   ioctl(generic)
+   ...
+   obj:/usr/lib/libamdocl64.so
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   ioctl(generic)
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   obj:*
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   ioctl(generic)
+   obj:/usr/lib/dri/fglrx_dri.so
+   ...
+   fun:getenv
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   ioctl(generic)
+   ...
+   obj:/usr/lib/dri/fglrx_dri.so
+}
+
+{
+   Ignore dlopen bug.
+   Memcheck:Leak
+   ...
+   fun:_dl_open
+   ...
+}
+
+
