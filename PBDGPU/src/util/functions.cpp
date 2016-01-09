@@ -169,3 +169,34 @@ unsigned int pbdgpu::createProgram(const unsigned int vertexShader, const unsign
 
     return programID;
 }
+
+cl_kernel pbdgpu::createKernel(string kernelSource,string buildOptions, string kernelName, const cl_context context, const cl_device_id device){
+
+    const char* sourcePtr = kernelSource.c_str();
+    const size_t sourceSize = kernelSource.size();
+
+    int err = CL_SUCCESS;
+    cl_program kernelProgram = clCreateProgramWithSource(context,1,&sourcePtr,&sourceSize,&err);
+
+    // compile an OpenCL Programm
+    err = clBuildProgram(kernelProgram,1,&device,buildOptions.c_str(),NULL,NULL);
+    if(err != 0)
+    {
+        size_t len;
+        clGetProgramBuildInfo(kernelProgram, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);
+        char *BLog = new char[len];
+        clGetProgramBuildInfo(kernelProgram, device, CL_PROGRAM_BUILD_LOG, len, BLog, NULL);
+        size_t retSourceSize;
+        err = clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,NULL,NULL,&retSourceSize);
+        char *retSource = new char[retSourceSize];
+        err = clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,retSourceSize,retSource,NULL);
+        fprintf(stderr,"In Kernel Source ... \n\n%s\n\n ... occured the following Errors:\n\n%s", retSource,BLog);
+
+        delete[] BLog;
+        delete[] retSource;
+        return nullptr;
+    }
+
+    // create an OpenCL Kernel Object
+    return clCreateKernel(kernelProgram,kernelName.c_str(),&err);
+}
