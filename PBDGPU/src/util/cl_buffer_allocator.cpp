@@ -56,6 +56,10 @@ namespace pbdgpu
     void CLBufferAllocator::allocate(const size_t sizeOfElement, const size_t length)
     {
         GPUMemAllocator::allocate(sizeOfElement,length);
+
+        if(getSizeinBytes() <= 0) return;
+
+        GPUMemAllocator::allocate(sizeOfElement,length);
         buffer = clCreateBuffer(context, memFlags, getSizeinBytes(), nullptr, nullptr);
     }
 

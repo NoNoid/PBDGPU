@@ -32,7 +32,7 @@ namespace pbdgpu
 	{
         GPUMemAllocator::allocate(sizeOfElement,length);
 
-        if(getSizeinBytes() == 0) return;
+        if(getSizeinBytes() <= 0) return;
 
 		if (!glIsBuffer(bufferID))
 		{
