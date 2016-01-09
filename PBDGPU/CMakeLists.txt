@@ -4,6 +4,8 @@ add_subdirectory(external)
 
 include_directories(include external/clew/include external/glew/include)
 
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/processKernels.cmake)
+
 add_library(pbdgpu STATIC
 	include/util/gpu_mem_allocator.hpp
         src/util/gpu_mem_allocator.cpp
@@ -12,7 +14,12 @@ add_library(pbdgpu STATIC
         include/util/cl_buffer_allocator.hpp
         src/util/cl_buffer_allocator.cpp
 
+        include/kernels.hpp
+        src/kernels.cpp
+        cmake/kernels.cpp.in
         include/kernelInclude/particle.h
+
+        src/kernelSrc/prediction.cl
 	
 	include/util/functions.hpp
 	src/util/functions.cpp

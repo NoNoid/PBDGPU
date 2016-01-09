@@ -1,0 +1,22 @@
+/*@AUTO_GENERATED_WARNING@*/
+
+#include <kernels.hpp>
+#include <util/functions.hpp>
+
+static const string predictionSource(
+R"END(
+@PREDICTION_KERNEL@
+)END");
+
+static const string particleHeader(
+R"END(
+@PARTICLE_HEADER@
+)END");
+
+static const string standardCompilerOptions("-D cl_float4=float4 -D cl_float3=float3 -D cl_float=float -D cl_int=int");
+
+cl_kernel pbdgpu::buildPredictionKernel(cl_context context,cl_device_id device)
+{
+
+    return pbdgpu::createKernel(particleHeader + predictionSource,standardCompilerOptions,"prediction",context,device);
+}

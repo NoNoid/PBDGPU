@@ -34,3 +34,6 @@ build*
 *.user
 *~
 *.orig
+
+# Auto-Generated Files
+/PBDGPU/src/kernels.cpp
