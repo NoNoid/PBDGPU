@@ -1,14 +1,16 @@
-#ifndef OCL_PARTICLE
-#define OCL_PARTICLE
+#ifndef PBD_PARTICLE
+#define PBD_PARTICLE
 
+#ifndef __OPENCL_C_VERSION__
 #include <clew.h>
+#endif
 
-struct particle
+typedef struct pbd_particle
 {
-    cl_float4 x;
-    cl_float4 v;
+    cl_float3 x;
+    cl_float3 v;
     cl_float invmass;
     cl_int phase;
-};
+} pbd_particle;
 
 #endif
