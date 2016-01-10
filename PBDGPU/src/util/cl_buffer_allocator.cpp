@@ -59,7 +59,11 @@ namespace pbdgpu
 
         if(getSizeinBytes() <= 0) return;
 
-        GPUMemAllocator::allocate(sizeOfElement,length);
+        if(buffer)
+        {
+            clReleaseMemObject(buffer);
+        }
+
         buffer = clCreateBuffer(context, memFlags, getSizeinBytes(), nullptr, nullptr);
     }
 
