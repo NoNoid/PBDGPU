@@ -174,9 +174,8 @@ int main(int argc, char **argv)
 
 	glFinish();
 
-    gpumem.initCLSharing(GLCLContext);
-
-    cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, &cl_err);
+	cl_command_queue queue = clCreateCommandQueue(GLCLContext, currentOGLDevice, 0, &cl_err);
+    gpumem.initCLSharing(GLCLContext,queue);
 
     const char* kernelSrc = "\n		__kernel void rev(__global int *data)\n	{\n		int gid = get_global_id(0);\n		int getGid = (get_global_size(0)-1-gid);\n		data[gid] = data[getGid];\n	}";
 
@@ -195,7 +194,7 @@ int main(int argc, char **argv)
 
     cl_err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &gpumem.getCLMem());
 
-    cl_err = clEnqueueAcquireGLObjects(queue, 1, &gpumem.getCLMem(), 0, NULL, NULL);
+    gpumem.acquireForCL(0, nullptr, nullptr);
 
     clFinish(queue);
 
@@ -207,7 +206,7 @@ int main(int argc, char **argv)
 
 	clFinish(queue);
 
-    cl_err = clEnqueueReleaseGLObjects(queue, 1, &gpumem.getCLMem(), 0, NULL, NULL);
+    gpumem.releaseFromCL(0, nullptr, nullptr);
 
     int* data = static_cast<int*>(gpumem.map());
 

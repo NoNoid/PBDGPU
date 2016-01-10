@@ -1,6 +1,6 @@
 #version 330
 
-layout(location = 0) in vec4 position;
+layout(location = 0) in vec3 position;
 
 layout(std140) uniform globalMatrices
 {
@@ -10,5 +10,5 @@ layout(std140) uniform globalMatrices
 
 void main()
 {
-    gl_Position = Projection * View * position;
+    gl_Position = Projection * View * vec4(position,1.0f);
 }
