@@ -8,7 +8,7 @@ Edit ../cmake/kernels.cpp.in instead
 )
 
 # read kernel source files and headers
-file(READ src/kernelSrc/prediction.cl PREDICTION_KERNEL)
-file(READ include/kernelInclude/particle.h PARTICLE_HEADER)
+file(READ ${DIR}/src/kernelSrc/prediction.cl PREDICTION_KERNEL)
+file(READ ${DIR}/include/kernelInclude/particle.h PARTICLE_HEADER)
 
-configure_file(cmake/kernels.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/kernels.cpp @ONLY)
+configure_file(${DIR}/cmake/kernels.cpp.in ${DIR}/src/kernels.cpp @ONLY)

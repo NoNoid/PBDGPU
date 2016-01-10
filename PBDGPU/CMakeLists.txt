@@ -4,8 +4,6 @@ add_subdirectory(external)
 
 include_directories(include external/clew/include external/glew/include)
 
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/processKernels.cmake)
-
 add_library(pbdgpu STATIC
 	include/util/gpu_mem_allocator.hpp
         src/util/gpu_mem_allocator.cpp
@@ -24,6 +22,18 @@ add_library(pbdgpu STATIC
 	include/util/functions.hpp
 	src/util/functions.cpp
 	)
+
+file(GLOB KERNEL_HEADERS include/kernelInclude/*.h)
+file(GLOB KERNEL_SOURCES src/kernelSrc/*.cl)
+
+add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/kernels.cpp
+		COMMAND cmake -DDIR=${CMAKE_CURRENT_SOURCE_DIR} -P ${CMAKE_CURRENT_LIST_DIR}/cmake/processKernels.cmake
+		DEPENDS ${KERNEL_HEADERS} ${KERNEL_SOURCES} cmake/kernels.cpp.in include/kernels.hpp)
+
+add_custom_target(resources DEPENDS ${KERNEL_SOURCES} ${KERNEL_HEADERS} cmake/kernels.cpp.in include/kernels.hpp)
+
+add_dependencies(pbdgpu resources)
 
 find_package(OpenGL)
 
