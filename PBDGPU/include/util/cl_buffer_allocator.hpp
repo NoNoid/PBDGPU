@@ -31,7 +31,7 @@ public:
      * @fn const cl_mem &getCLMem()
      * @return Const Reference to the underlying cl_mem.
      */
-    const cl_mem &getCLMem() {return buffer;}
+    inline const cl_mem &getCLMem() override {return buffer;}
 
     // GPUMemAllocator interface
 

@@ -44,7 +44,7 @@ namespace pbdgpu
          * @brief Get the OpenCL memory object for the buffer.
          * @return OpenCL memory object.
          */
-        inline const cl_mem &getCLMem() { return clSharingMem; }
+        inline const cl_mem &getCLMem() override { return clSharingMem; }
 
         // GPUMemAllocator interface
 

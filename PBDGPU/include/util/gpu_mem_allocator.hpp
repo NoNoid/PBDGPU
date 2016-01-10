@@ -2,6 +2,7 @@
 #define  _GPU_MEM_ALLOCATOR_
 
 #include <cstddef>
+#include <clew.h>
 
 namespace pbdgpu
 {
@@ -64,6 +65,7 @@ namespace pbdgpu
          */
         size_t getSizeinBytes();
 
+        virtual const cl_mem &getCLMem() = 0;
 	protected:
         /**
          * @brief sizeOfElement
