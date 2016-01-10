@@ -38,7 +38,7 @@ namespace pbdgpu
          * @brief Inits sharing with OpenCL for the buffer.
          * @param context An OpenCL buffer with CLGL-interop activated.
          */
-        void initCLSharing(const cl_context &context);
+		void initCLSharing(cl_context &context, cl_command_queue queue);
 
         /** @fn inline const cl_mem &getCLMem()
          * @brief Get the OpenCL memory object for the buffer.
@@ -58,6 +58,14 @@ namespace pbdgpu
 
         void allocate(const size_t sizeOfElement, const size_t size) override;
 
+
+		virtual void acquireForCL(cl_uint num_events_in_wait_list,
+								  const cl_event *event_wait_list,
+								  cl_event *event) override;
+
+
+		virtual void releaseFromCL(cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event);
+
 // Do not allow copies
 		GLBufferAllocator (const GLBufferAllocator &obj) = delete;
 		GLBufferAllocator & operator= (const GLBufferAllocator &obj) = delete;
@@ -70,7 +78,9 @@ namespace pbdgpu
 
         cl_mem clSharingMem = nullptr;
 
-    };
+		cl_context sharingContext;
+		cl_command_queue queue;
+	};
 }
 
 #endif

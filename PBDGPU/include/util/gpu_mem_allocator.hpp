@@ -66,6 +66,15 @@ namespace pbdgpu
         size_t getSizeinBytes();
 
         virtual const cl_mem &getCLMem() = 0;
+
+        virtual void acquireForCL(cl_uint num_events_in_wait_list,
+                                  const cl_event *event_wait_list,
+                                  cl_event *event) = 0;
+
+        virtual void releaseFromCL(cl_uint num_events_in_wait_list,
+                                   const cl_event *event_wait_list,
+                                   cl_event *event) = 0;
+
 	protected:
         /**
          * @brief sizeOfElement

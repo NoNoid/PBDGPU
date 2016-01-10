@@ -12,6 +12,7 @@ namespace pbdgpu {
 class CLBufferAllocator : public GPUMemAllocator
 {
 public:
+
     /** @fn CLBufferAllocator(const size_t sizeOfElement,cl_context context,cl_command_queue commandQueue)
      * @brief Constructor of CLBufferAllocator
      * @param sizeOfElement The size in bytes of one element of the buffer.
@@ -55,6 +56,16 @@ public:
     virtual void free() override;
 
     virtual void allocate(const size_t sizeOfElement, const size_t size) override;
+
+
+    virtual void acquireForCL(cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event);
+
+
+    virtual void releaseFromCL(cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event);
+
+// Do not allow copies
+    CLBufferAllocator (const CLBufferAllocator &obj) = delete;
+    CLBufferAllocator & operator= (const CLBufferAllocator &obj) = delete;
 
 private:
     cl_mem buffer = nullptr;

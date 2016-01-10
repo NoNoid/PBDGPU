@@ -2,9 +2,11 @@
 
 namespace pbdgpu
 {
-	void GLBufferAllocator::initCLSharing(const cl_context &context)
+	void GLBufferAllocator::initCLSharing(cl_context &context,cl_command_queue comqueue)
 	{
-		clSharingMem = clCreateFromGLBuffer(context, CL_MEM_READ_WRITE, bufferID, nullptr);
+		sharingContext = context;
+		queue = comqueue;
+		clSharingMem = clCreateFromGLBuffer(sharingContext, CL_MEM_READ_WRITE, bufferID, nullptr);
 	}
 
 	void* GLBufferAllocator::map()
@@ -75,4 +77,15 @@ namespace pbdgpu
         }
         glDeleteBuffers(1,&bufferID);
     }
+
+	void GLBufferAllocator::acquireForCL(cl_uint num_events_in_wait_list,
+										 const cl_event *event_wait_list,
+										 cl_event *event) {
+		clEnqueueAcquireGLObjects(queue,1,&clSharingMem,num_events_in_wait_list, event_wait_list, event);
+	}
+
+	void GLBufferAllocator::releaseFromCL(cl_uint num_events_in_wait_list, const cl_event *event_wait_list,
+										  cl_event *event) {
+		clEnqueueReleaseGLObjects(queue,1,&clSharingMem,num_events_in_wait_list,event_wait_list,event);
+	}
 }
