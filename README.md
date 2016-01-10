@@ -1,1 +1,8 @@
-# PBDGPU
+PBDGPU
+---
+
+Dependencies
+---
+
+- Freeglut
+- GLM
