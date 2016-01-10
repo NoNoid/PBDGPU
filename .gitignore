@@ -37,3 +37,6 @@ build*
 
 # Auto-Generated Files
 /PBDGPU/src/kernels.cpp
+
+# IDE specifics
+/.idea/*
