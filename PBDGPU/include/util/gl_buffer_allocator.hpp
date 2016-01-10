@@ -58,6 +58,10 @@ namespace pbdgpu
 
         void allocate(const size_t sizeOfElement, const size_t size) override;
 
+// Do not allow copies
+		GLBufferAllocator (const GLBufferAllocator &obj) = delete;
+		GLBufferAllocator & operator= (const GLBufferAllocator &obj) = delete;
+
 	private:
 		GLuint bufferID;
 		GLenum bufferTarget;

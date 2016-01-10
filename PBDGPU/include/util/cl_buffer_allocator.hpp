@@ -27,6 +27,17 @@ public:
 
     virtual ~CLBufferAllocator();
 
+    void setOpenCLContext(cl_context context)
+    {
+        this->context = context;
+    }
+
+
+    void setOpenCLCommandQueue(cl_command_queue queue)
+    {
+        this->commandQueue = queue;
+    }
+
     /**
      * @fn const cl_mem &getCLMem()
      * @return Const Reference to the underlying cl_mem.

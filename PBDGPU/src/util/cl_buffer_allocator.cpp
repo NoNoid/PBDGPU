@@ -73,6 +73,15 @@ namespace pbdgpu
         }
     }
 
+    void CLBufferAllocator::acquireForCL(cl_uint num_events_in_wait_list, const cl_event *event_wait_list,
+                                         cl_event *event) {
+        *event = nullptr;
+    }
+
+    void CLBufferAllocator::releaseFromCL(cl_uint num_events_in_wait_list, const cl_event *event_wait_list,
+                                          cl_event *event) {
+        *event = nullptr;
+    }
 }
 
 
