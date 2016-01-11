@@ -102,9 +102,14 @@ int main(int argc, char **argv)
 
 		printf("\n\t%d Device(s) detected.\n", numDevices);
 
+		if (numDevices == 0)
+		{
+			continue;
+		}
+
         vector<cl_device_id> devices(numDevices);
 
-        clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, numDevices, &devices[0], &numDevices);
+        clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, numDevices, &devices[0], nullptr);
 
 		for (cl_uint i = 0; i < numDevices; ++i)
 		{
