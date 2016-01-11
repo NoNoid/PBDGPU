@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <chrono>
 
 #include <GL/glew.h>
 
@@ -41,10 +42,20 @@ static struct simData
     pbdgpu::CLBufferAllocator predictedPositions;
     pbdgpu::CLBufferAllocator masses;
     pbdgpu::CLBufferAllocator scaledMasses;
+    pbdgpu::CLBufferAllocator planes;
 
+    cl_uint numPlanes = 1;
     cl_float3 g;
-    cl_float dt = 0.03333333333f;
+
 } simData;
+
+static struct simulationParameters
+{
+    unsigned int numSteps = 3;
+    float timePerFrame = 30.f;
+    cl_float dt = (1.0f/timePerFrame)/cl_float(numSteps);
+    std::chrono::time_point<std::chrono::high_resolution_clock> lastTime;
+}simParams;
 
 static struct renderData
 {
@@ -59,6 +70,7 @@ static struct gpuprograms
     GLuint particleShaderProgram = 0;
     cl_kernel predictionKernel = nullptr;
     cl_kernel updateKernel;
+    cl_kernel planeCollKernel;
 } progs;
 
 static struct oclvars
@@ -186,25 +198,56 @@ void motion(int x, int y)
 
 void display(void) {
 
+    auto now = std::chrono::high_resolution_clock::now();
+    long elapsed_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(now - simParams.lastTime).count();
+    simParams.lastTime = now;
+    float elapsed_seconds = float(elapsed_microseconds) / 1000000.0f;
+    //printf("Elapsed time: %f \n",elapsed_seconds);
+
     // Compute
-    cl_event acquireEvent = nullptr;
-    simData.particles.acquireForCL(0,nullptr,&acquireEvent);
+    cl_event LoopEndEvent = nullptr;
+    simData.particles.acquireForCL(0,nullptr,&LoopEndEvent);
 
-    cl_event predKernelEvent = nullptr;
-    int cl_err = clEnqueueNDRangeKernel(oclvars.queue, progs.predictionKernel, 1, nullptr, &simData.particles_size, nullptr, 1,&acquireEvent , &predKernelEvent);
-    if(cl_err != CL_SUCCESS)
+
+    for (unsigned int i = 0; i < simParams.numSteps; ++i)
     {
-        printf("Error on Prediction Kernel Execution:%d",cl_err);
+        cl_event predKernelEvent = nullptr;
+        int cl_err = clEnqueueNDRangeKernel(
+                oclvars.queue,
+                progs.predictionKernel,
+                1, nullptr, &simData.particles_size, nullptr,
+                1, &LoopEndEvent, &predKernelEvent);
+        if(cl_err != CL_SUCCESS)
+        {
+            printf("Error on Prediction Kernel Execution:%d \n",cl_err);
+        }
+
+        cl_event planeCollEvent = nullptr;
+        cl_err = clEnqueueNDRangeKernel(
+                oclvars.queue,
+                progs.planeCollKernel,
+                1, nullptr, &simData.particles_size, nullptr,
+                1, &predKernelEvent, &planeCollEvent);
+        if(cl_err != CL_SUCCESS)
+        {
+            printf("Error on Plane Collision Kernel Execution:%d \n",cl_err);
+        }
+
+        cl_event updateKernelEvent = nullptr;
+        cl_err = clEnqueueNDRangeKernel(
+                oclvars.queue,
+                progs.updateKernel,
+                1, nullptr, &simData.particles_size, nullptr,
+                1,&planeCollEvent , &updateKernelEvent);
+        if(cl_err != CL_SUCCESS)
+        {
+            printf("Error on Update Kernel Execution:%d \n",cl_err);
+        }
+
+        LoopEndEvent = updateKernelEvent;
     }
 
-    cl_event updateKernelEvent = nullptr;
-    cl_err = clEnqueueNDRangeKernel(oclvars.queue, progs.updateKernel, 1, nullptr, &simData.particles_size, nullptr, 1,&predKernelEvent , &updateKernelEvent);
-    if(cl_err != CL_SUCCESS)
-    {
-        printf("Error on Update Kernel Execution:%d",cl_err);
-    }
-
-    simData.particles.releaseFromCL(1,&updateKernelEvent, nullptr);
+    simData.particles.releaseFromCL(1, &LoopEndEvent, nullptr);
 
     // Draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -251,6 +294,7 @@ void atClose()
     simData.predictedPositions.free();
     simData.masses.free();
     simData.scaledMasses.free();
+    simData.planes.free();
 }
 
 int main(int argc, char *argv[])
@@ -292,6 +336,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    int cl_err;
+
     oclvars.properties = pbdgpu::getOGLInteropInfo(oclvars.currentOGLDevice);
     if (oclvars.properties.empty())
     {
@@ -302,10 +348,25 @@ int main(int argc, char *argv[])
     oclvars.queue = clCreateCommandQueue(oclvars.GLCLContext, oclvars.currentOGLDevice, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, nullptr);
     progs.predictionKernel = pbdgpu::buildPredictionKernel(oclvars.GLCLContext,oclvars.currentOGLDevice);
     clSetKernelArg(progs.predictionKernel, 5, sizeof(cl_float3), &simData.g);
-    clSetKernelArg(progs.predictionKernel, 6, sizeof(cl_float), &simData.dt);
+    cl_err = clSetKernelArg(progs.predictionKernel, 6, sizeof(cl_float), &simParams.dt);
+    if(cl_err != 0)
+    {
+        return -1;
+    }
 
     progs.updateKernel = pbdgpu::buildUpdateKernel(oclvars.GLCLContext,oclvars.currentOGLDevice);
-    clSetKernelArg(progs.updateKernel,2,sizeof(cl_float),&simData.dt);
+    cl_err = clSetKernelArg(progs.updateKernel,2,sizeof(cl_float),&simParams.dt);
+    if(cl_err != 0)
+    {
+        return -1;
+    }
+
+    progs.planeCollKernel = pbdgpu::buildPlaneCollisionKernel(oclvars.GLCLContext,oclvars.currentOGLDevice);
+    cl_err = clSetKernelArg(progs.planeCollKernel,3,sizeof(cl_uint),&simData.numPlanes);
+    if(cl_err != 0)
+    {
+        return -1;
+    }
 
     // init buffers
 
@@ -328,6 +389,7 @@ int main(int argc, char *argv[])
     simData.particles.initCLSharing(oclvars.GLCLContext,oclvars.queue);
     clSetKernelArg(progs.predictionKernel, 0, sizeof(cl_mem), &simData.particles.getCLMem());
     clSetKernelArg(progs.updateKernel,0,sizeof(cl_mem), &simData.particles.getCLMem());
+    clSetKernelArg(progs.planeCollKernel,0,sizeof(cl_mem), &simData.particles.getCLMem());
 
     glGenVertexArrays(1,&renderData.particlesVAO);
     glBindBuffer(GL_ARRAY_BUFFER, simData.particles.getBufferID());
@@ -364,6 +426,7 @@ int main(int argc, char *argv[])
     simData.predictedPositions.write(simData.particles_size, &predPos[0]);
     clSetKernelArg(progs.predictionKernel, 2, sizeof(cl_mem), &simData.predictedPositions.getCLMem());
     clSetKernelArg(progs.updateKernel,1,sizeof(cl_mem),&simData.predictedPositions.getCLMem());
+    clSetKernelArg(progs.planeCollKernel,1,sizeof(cl_mem),&simData.predictedPositions.getCLMem());
 
     // init masses buffer
     vector<cl_float> masses(simData.particles_size);
@@ -388,6 +451,23 @@ int main(int argc, char *argv[])
     simData.scaledMasses.allocate(sizeof(cl_float), simData.particles_size);
     simData.scaledMasses.write(simData.particles_size, &scaledMasses[0]);
     clSetKernelArg(progs.predictionKernel, 4, sizeof(cl_mem), &simData.scaledMasses.getCLMem());
+
+    // init plane buffer
+    // layout = n.x n.y n.z d | n = plane normal
+
+    cl_float4 plane;
+//    plane.x = 0.7071067f;
+//    plane.y = 0.7071067f;
+    plane.x = 0.0f;
+    plane.y = 1.0f;
+    plane.z = 0.0f;
+    plane.w = 0.0f;
+
+    simData.planes.setOpenCLContext(oclvars.GLCLContext);
+    simData.planes.setOpenCLCommandQueue(oclvars.queue);
+    simData.planes.allocate(sizeof(cl_float4),simData.numPlanes);
+    simData.planes.write(simData.numPlanes,&plane);
+    clSetKernelArg(progs.planeCollKernel,2, sizeof(cl_mem),&simData.planes.getCLMem());
 
     // init additional buffers
     glGenBuffers(1, &renderData.cameraBuffer);
