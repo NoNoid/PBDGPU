@@ -8,6 +8,11 @@ R"END(
 @PREDICTION_KERNEL@
 )END");
 
+static const string updateSource(
+R"END(
+@UPDATE_KERNEL@
+)END");
+
 static const string particleHeader(
 R"END(
 @PARTICLE_HEADER@
@@ -19,4 +24,9 @@ cl_kernel pbdgpu::buildPredictionKernel(cl_context context,cl_device_id device)
 {
 
     return pbdgpu::createKernel(particleHeader + predictionSource,standardCompilerOptions,"prediction",context,device);
+}
+
+cl_kernel pbdgpu::buildUpdateKernel(cl_context context, cl_device_id device)
+{
+    return pbdgpu::createKernel(particleHeader+updateSource,standardCompilerOptions,"update",context,device);
 }
