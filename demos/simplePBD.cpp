@@ -31,8 +31,8 @@ static struct simData
     simData()
     {
         g.x = 0.0f;
-        g.y = 0.0f;
-        g.z = -9.81f;
+        g.y = -0.01f;
+        g.z = 0.0f;
     }
 
     const size_t particles_size = 200;
@@ -58,6 +58,7 @@ static struct gpuprograms
     GLuint fragmentShader = 0;
     GLuint particleShaderProgram = 0;
     cl_kernel predictionKernel = nullptr;
+    cl_kernel updateKernel;
 } progs;
 
 static struct oclvars
@@ -196,7 +197,14 @@ void display(void) {
         printf("Error on Prediction Kernel Execution:%d",cl_err);
     }
 
-    simData.particles.releaseFromCL(1,&predKernelEvent, nullptr);
+    cl_event updateKernelEvent = nullptr;
+    cl_err = clEnqueueNDRangeKernel(oclvars.queue, progs.updateKernel, 1, nullptr, &simData.particles_size, nullptr, 1,&predKernelEvent , &updateKernelEvent);
+    if(cl_err != CL_SUCCESS)
+    {
+        printf("Error on Update Kernel Execution:%d",cl_err);
+    }
+
+    simData.particles.releaseFromCL(1,&updateKernelEvent, nullptr);
 
     // Draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -296,6 +304,8 @@ int main(int argc, char *argv[])
     clSetKernelArg(progs.predictionKernel, 5, sizeof(cl_float3), &simData.g);
     clSetKernelArg(progs.predictionKernel, 6, sizeof(cl_float), &simData.dt);
 
+    progs.updateKernel = pbdgpu::buildUpdateKernel(oclvars.GLCLContext,oclvars.currentOGLDevice);
+    clSetKernelArg(progs.updateKernel,2,sizeof(cl_float),&simData.dt);
 
     // init buffers
 
@@ -317,6 +327,7 @@ int main(int argc, char *argv[])
     simData.particles.write(simData.particles_size, &pos[0]);
     simData.particles.initCLSharing(oclvars.GLCLContext,oclvars.queue);
     clSetKernelArg(progs.predictionKernel, 0, sizeof(cl_mem), &simData.particles.getCLMem());
+    clSetKernelArg(progs.updateKernel,0,sizeof(cl_mem), &simData.particles.getCLMem());
 
     glGenVertexArrays(1,&renderData.particlesVAO);
     glBindBuffer(GL_ARRAY_BUFFER, simData.particles.getBufferID());
@@ -352,6 +363,7 @@ int main(int argc, char *argv[])
     simData.predictedPositions.allocate(sizeof(cl_float3), simData.particles_size);
     simData.predictedPositions.write(simData.particles_size, &predPos[0]);
     clSetKernelArg(progs.predictionKernel, 2, sizeof(cl_mem), &simData.predictedPositions.getCLMem());
+    clSetKernelArg(progs.updateKernel,1,sizeof(cl_mem),&simData.predictedPositions.getCLMem());
 
     // init masses buffer
     vector<cl_float> masses(simData.particles_size);
