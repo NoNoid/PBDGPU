@@ -188,5 +188,19 @@ cl_kernel pbdgpu::createKernel(string kernelSource,string buildOptions, string k
     }
 
     // create an OpenCL Kernel Object
-    return clCreateKernel(kernelProgram,kernelName.c_str(),&err);
+    cl_kernel kernel = clCreateKernel(kernelProgram,kernelName.c_str(),&err);
+
+    if(err != 0)
+    {
+        size_t retSourceSize;
+        clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,NULL,NULL,&retSourceSize);
+
+        vector<char> retSource(retSourceSize);
+        clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,retSourceSize,&retSource[0],NULL);
+
+        fprintf(stderr,"Error: %d while creating kernel: '%s'.\n\nFrom Source:\n%s",err,kernelName.c_str(),&retSource[0]);
+
+        return nullptr;
+    }
+    return kernel;
 }
