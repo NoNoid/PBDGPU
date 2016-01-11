@@ -12,8 +12,9 @@ kernel void prediction(
     pbd_particle particle = p[i];
     float3 externalForce = fext[i];    
   
-    p[i].v      = particle.v + ((externalForce + g) * particle.invmass * dt);
-    pred_x[i]   = particle.x + (particle.v * dt);
+    float3 vel = particle.v + ((externalForce + g) * particle.invmass * dt);
+    p[i].v = vel;
+    pred_x[i] = particle.x + (vel * dt);
 
     float mass = m[i];
     float height = pred_x[i].z;
