@@ -3,7 +3,7 @@ kernel void update(
         global float3 *pred_x,
         private float dt)
 {
-    ulong i = get_global_id(0);
+    size_t i = get_global_id(0);
 
     float3 position = p[i].x;
     float3 predictedPosition = pred_x[i];

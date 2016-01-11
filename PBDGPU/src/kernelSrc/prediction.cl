@@ -7,7 +7,7 @@ kernel void prediction(
     private float3 g,
     private float dt)
 {
-    int i = get_global_id(0);
+    size_t i = get_global_id(0);
 
     pbd_particle particle = p[i];
     float3 externalForce = fext[i];    
