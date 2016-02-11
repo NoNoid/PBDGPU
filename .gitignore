@@ -40,3 +40,4 @@ build*
 
 # IDE specifics
 /.idea/*
+/solution
