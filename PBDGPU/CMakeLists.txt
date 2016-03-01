@@ -11,6 +11,8 @@ add_library(pbdgpu STATIC
 	src/util/gl_buffer_allocator.cpp
         include/util/cl_buffer_allocator.hpp
         src/util/cl_buffer_allocator.cpp
+		include/util/gl_copy_buffer_allocator.hpp
+		src/util/gl_copy_buffer_allocator.cpp
 
         include/kernels.hpp
         src/kernels.cpp
