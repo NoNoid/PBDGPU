@@ -208,10 +208,10 @@ void display(void) {
     //printf("Elapsed time: %f \n",elapsed_seconds);
 
     // Compute
-    cl_event LoopEndEvent = nullptr;
-    simData.particles->acquireForCL(0,nullptr,&LoopEndEvent);
 
+    simData.particles->acquireForCL(0,nullptr, nullptr);
 
+/*
     for (unsigned int i = 0; i < simParams.numSteps; ++i)
     {
         cl_event predKernelEvent = nullptr;
@@ -219,7 +219,7 @@ void display(void) {
                 oclvars.queue,
                 progs.predictionKernel,
                 1, nullptr, &simData.particles_size, nullptr,
-                1, &LoopEndEvent, &predKernelEvent);
+                0, nullptr, nullptr);
         if(cl_err != CL_SUCCESS)
         {
             printf("Error on Prediction Kernel Execution:%d \n",cl_err);
@@ -230,7 +230,7 @@ void display(void) {
                 oclvars.queue,
                 progs.planeCollKernel,
                 1, nullptr, &simData.particles_size, nullptr,
-                1, &predKernelEvent, &planeCollEvent);
+                0, nullptr, nullptr);
         if(cl_err != CL_SUCCESS)
         {
             printf("Error on Plane Collision Kernel Execution:%d \n",cl_err);
@@ -241,16 +241,14 @@ void display(void) {
                 oclvars.queue,
                 progs.updateKernel,
                 1, nullptr, &simData.particles_size, nullptr,
-                1,&planeCollEvent , &updateKernelEvent);
+                0, nullptr, nullptr);
         if(cl_err != CL_SUCCESS)
         {
             printf("Error on Update Kernel Execution:%d \n",cl_err);
         }
-
-        LoopEndEvent = updateKernelEvent;
     }
-
-    simData.particles->releaseFromCL(1, &LoopEndEvent, nullptr);
+*/
+    simData.particles->releaseFromCL(0, nullptr, nullptr);
 
     // Draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -379,7 +377,6 @@ int main(int argc, char *argv[])
 
     oclvars.GLCLContext = clCreateContext(&oclvars.properties[0], 1, &oclvars.currentOGLDevice, nullptr, nullptr, nullptr);
     oclvars.queue = clCreateCommandQueue(oclvars.GLCLContext, oclvars.currentOGLDevice, 0, &cl_err);
-    printf("%d",cl_err);
     assert(cl_err == 0 && "Error while creating commandqueue");
 
     progs.predictionKernel = pbdgpu::buildPredictionKernel(oclvars.GLCLContext,oclvars.currentOGLDevice);
