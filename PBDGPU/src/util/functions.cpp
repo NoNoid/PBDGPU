@@ -25,6 +25,21 @@ vector<cl_context_properties> pbdgpu::getOGLInteropInfo(cl_device_id &out_device
 
 	for (unsigned int i = 0; i < num_platforms; ++i)
 	{
+        size_t numChars;
+        clGetPlatformInfo(platforms[i],CL_PLATFORM_EXTENSIONS,0, nullptr,&numChars);
+
+        char* extensions = new char[numChars];
+
+        clGetPlatformInfo(platforms[i],CL_PLATFORM_EXTENSIONS,numChars,extensions, nullptr);
+
+        string extensionsString(extensions);
+
+        if(extensionsString.find("cl_khr_gl_sharing") == std::string::npos)
+        {
+            continue;
+        }
+
+        clGetGLContextInfoKHR = nullptr;
 		// get the function pointer for 'clGetGLContextInfoKHR' from the current platform
 		clGetGLContextInfoKHR = reinterpret_cast<clGetGLContextInfoKHR_fn>(clGetExtensionFunctionAddressForPlatform(platforms[i], "clGetGLContextInfoKHR"));
 		if (!clGetGLContextInfoKHR)
@@ -95,7 +110,7 @@ unsigned int pbdgpu::createShader(const string shaderSource, const unsigned int 
         vector<char> errorLog(maxLength);
         glGetShaderInfoLog(shaderID, maxLength, &maxLength, &errorLog[0]);
 
-        printf("%s",&errorLog[0]);
+        printf("-- Shader Error Log ---\n%s-----------------------\n",&errorLog[0]);
 
         glDeleteShader(shaderID);
         return 0;
