@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <chrono>
+#include <memory>
 
 #include <GL/glew.h>
 
@@ -20,9 +21,11 @@
 #include <util/functions.hpp>
 #include <util/gl_buffer_allocator.hpp>
 #include <util/cl_buffer_allocator.hpp>
+#include <util/gl_copy_buffer_allocator.hpp>
 
 #include <kernelInclude/particle.h>
 #include <kernels.hpp>
+
 
 using glm::vec3;
 using glm::mat4;
@@ -37,12 +40,12 @@ static struct simData
     }
 
     const size_t particles_size = 200;
-    pbdgpu::GLBufferAllocator particles;
-    pbdgpu::CLBufferAllocator externalForces;
-    pbdgpu::CLBufferAllocator predictedPositions;
-    pbdgpu::CLBufferAllocator masses;
-    pbdgpu::CLBufferAllocator scaledMasses;
-    pbdgpu::CLBufferAllocator planes;
+    std::shared_ptr<pbdgpu::GLBufferAllocator> particles;
+    std::shared_ptr<pbdgpu::CLBufferAllocator> externalForces;
+    std::shared_ptr<pbdgpu::CLBufferAllocator> predictedPositions;
+    std::shared_ptr<pbdgpu::CLBufferAllocator> masses;
+    std::shared_ptr<pbdgpu::CLBufferAllocator> scaledMasses;
+    std::shared_ptr<pbdgpu::CLBufferAllocator> planes;
 
     cl_uint numPlanes = 1;
     cl_float3 g;
@@ -113,7 +116,7 @@ static struct camera
 
 static struct window
 {
-    unsigned int displayMode = GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA;
+    unsigned int displayMode =  GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA;
     int x = 100;
     int y = 100;
     int width = 640;
@@ -206,7 +209,7 @@ void display(void) {
 
     // Compute
     cl_event LoopEndEvent = nullptr;
-    simData.particles.acquireForCL(0,nullptr,&LoopEndEvent);
+    simData.particles->acquireForCL(0,nullptr,&LoopEndEvent);
 
 
     for (unsigned int i = 0; i < simParams.numSteps; ++i)
@@ -247,7 +250,7 @@ void display(void) {
         LoopEndEvent = updateKernelEvent;
     }
 
-    simData.particles.releaseFromCL(1, &LoopEndEvent, nullptr);
+    simData.particles->releaseFromCL(1, &LoopEndEvent, nullptr);
 
     // Draw
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -289,12 +292,12 @@ void atClose()
 
     glDeleteBuffers(1,&renderData.cameraBuffer);
 
-    simData.particles.free();
-    simData.externalForces.free();
-    simData.predictedPositions.free();
-    simData.masses.free();
-    simData.scaledMasses.free();
-    simData.planes.free();
+    simData.particles->free();
+    simData.externalForces->free();
+    simData.predictedPositions->free();
+    simData.masses->free();
+    simData.scaledMasses->free();
+    simData.planes->free();
 }
 
 int main(int argc, char *argv[])
@@ -303,10 +306,17 @@ int main(int argc, char *argv[])
 
     // init OpenGL
     glutInit(&argc, argv);
+    glutInitContextVersion(3,3);
+    glutInitContextProfile(GLUT_CORE_PROFILE);
     glutInitDisplayMode(win.displayMode);
     glutInitWindowPosition(win.x,win.y);
     glutInitWindowSize(win.width, win.height);
     glutCreateWindow(win.title);
+
+    std::printf("%s\n%s\n",
+                glGetString(GL_RENDERER),
+                glGetString(GL_VERSION)
+    );
 
     glutDisplayFunc(display);
     glutIdleFunc(display);
@@ -316,6 +326,7 @@ int main(int argc, char *argv[])
     glutPassiveMotionFunc(passiveMotion);
     glutCloseFunc(atClose);
 
+    glewExperimental = GL_TRUE;
     glewInit();
 
     glEnable(GL_POINT_SMOOTH);
@@ -338,14 +349,39 @@ int main(int argc, char *argv[])
 
     int cl_err;
 
+    bool useSharing = false;
+
     oclvars.properties = pbdgpu::getOGLInteropInfo(oclvars.currentOGLDevice);
     if (oclvars.properties.empty())
     {
         // if properties if null abort test because no CLGL interop device could be found
-        return -1;
+        oclvars.properties.push_back(0);
+
+        cl_uint num_platforms;
+
+        clGetPlatformIDs(0, nullptr, &num_platforms);
+
+        vector<cl_platform_id> platforms(num_platforms);
+
+        clGetPlatformIDs(num_platforms, &platforms[0], nullptr);
+
+        cl_int error = 0;
+        for (unsigned int i = 0; i < num_platforms; ++i)
+        {
+            error = clGetDeviceIDs(platforms[i],CL_DEVICE_TYPE_GPU,1,&oclvars.currentOGLDevice,nullptr);
+            assert(error == 0 && "Error while getting Devices");
+        }
+
+        useSharing = false;
+    }else{
+        useSharing = true;
     }
+
     oclvars.GLCLContext = clCreateContext(&oclvars.properties[0], 1, &oclvars.currentOGLDevice, nullptr, nullptr, nullptr);
-    oclvars.queue = clCreateCommandQueue(oclvars.GLCLContext, oclvars.currentOGLDevice, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, nullptr);
+    oclvars.queue = clCreateCommandQueue(oclvars.GLCLContext, oclvars.currentOGLDevice, 0, &cl_err);
+    printf("%d",cl_err);
+    assert(cl_err == 0 && "Error while creating commandqueue");
+
     progs.predictionKernel = pbdgpu::buildPredictionKernel(oclvars.GLCLContext,oclvars.currentOGLDevice);
     clSetKernelArg(progs.predictionKernel, 5, sizeof(cl_float3), &simData.g);
     cl_err = clSetKernelArg(progs.predictionKernel, 6, sizeof(cl_float), &simParams.dt);
@@ -384,15 +420,14 @@ int main(int argc, char *argv[])
         pos[i].phase = 1;
     }
 
-    simData.particles.allocate(sizeof(pbd_particle), simData.particles_size);
-    simData.particles.write(simData.particles_size, &pos[0]);
-    simData.particles.initCLSharing(oclvars.GLCLContext,oclvars.queue);
-    clSetKernelArg(progs.predictionKernel, 0, sizeof(cl_mem), &simData.particles.getCLMem());
-    clSetKernelArg(progs.updateKernel,0,sizeof(cl_mem), &simData.particles.getCLMem());
-    clSetKernelArg(progs.planeCollKernel,0,sizeof(cl_mem), &simData.particles.getCLMem());
+    simData.particles = std::make_shared<pbdgpu::GLCopyBufferAllocator>(sizeof(pbd_particle), simData.particles_size,oclvars.GLCLContext,oclvars.queue);
+    simData.particles->write(simData.particles_size, &pos[0]);
+    clSetKernelArg(progs.predictionKernel, 0, sizeof(cl_mem), &simData.particles->getCLMem());
+    clSetKernelArg(progs.updateKernel,0,sizeof(cl_mem), &simData.particles->getCLMem());
+    clSetKernelArg(progs.planeCollKernel,0,sizeof(cl_mem), &simData.particles->getCLMem());
 
     glGenVertexArrays(1,&renderData.particlesVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, simData.particles.getBufferID());
+    glBindBuffer(GL_ARRAY_BUFFER, simData.particles->getBufferID());
     glBindVertexArray(renderData.particlesVAO);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,sizeof(pbd_particle),NULL);
     glEnableVertexAttribArray(0);
@@ -406,11 +441,12 @@ int main(int argc, char *argv[])
         extForces[i].z = 0.0f;
     }
 
-    simData.externalForces.setOpenCLContext(oclvars.GLCLContext);
-    simData.externalForces.setOpenCLCommandQueue(oclvars.queue);
-    simData.externalForces.allocate(sizeof(cl_float3), simData.particles_size);
-    simData.externalForces.write(simData.particles_size, &extForces[0]);
-    clSetKernelArg(progs.predictionKernel, 1, sizeof(cl_mem), &simData.externalForces.getCLMem());
+    simData.externalForces = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles_size);
+/*    simData.externalForces->setOpenCLContext(oclvars.GLCLContext);
+    simData.externalForces->setOpenCLCommandQueue(oclvars.queue);
+    simData.externalForces->allocate(sizeof(cl_float3), simData.particles_size);*/
+    simData.externalForces->write(simData.particles_size, &extForces[0]);
+    clSetKernelArg(progs.predictionKernel, 1, sizeof(cl_mem), &simData.externalForces->getCLMem());
 
     // init predicted positions buffer
     vector<cl_float3> predPos(simData.particles_size);
@@ -420,13 +456,14 @@ int main(int argc, char *argv[])
         predPos[i].y = 0.0f;
         predPos[i].z = 0.0f;
     }
-    simData.predictedPositions.setOpenCLContext(oclvars.GLCLContext);
-    simData.predictedPositions.setOpenCLCommandQueue(oclvars.queue);
-    simData.predictedPositions.allocate(sizeof(cl_float3), simData.particles_size);
-    simData.predictedPositions.write(simData.particles_size, &predPos[0]);
-    clSetKernelArg(progs.predictionKernel, 2, sizeof(cl_mem), &simData.predictedPositions.getCLMem());
-    clSetKernelArg(progs.updateKernel,1,sizeof(cl_mem),&simData.predictedPositions.getCLMem());
-    clSetKernelArg(progs.planeCollKernel,1,sizeof(cl_mem),&simData.predictedPositions.getCLMem());
+    simData.predictedPositions = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles_size);
+/*    simData.predictedPositions->setOpenCLContext(oclvars.GLCLContext);
+    simData.predictedPositions->setOpenCLCommandQueue(oclvars.queue);
+    simData.predictedPositions->allocate(sizeof(cl_float3), simData.particles_size);*/
+    simData.predictedPositions->write(simData.particles_size, &predPos[0]);
+    clSetKernelArg(progs.predictionKernel, 2, sizeof(cl_mem), &simData.predictedPositions->getCLMem());
+    clSetKernelArg(progs.updateKernel,1,sizeof(cl_mem),&simData.predictedPositions->getCLMem());
+    clSetKernelArg(progs.planeCollKernel,1,sizeof(cl_mem),&simData.predictedPositions->getCLMem());
 
     // init masses buffer
     vector<cl_float> masses(simData.particles_size);
@@ -434,11 +471,12 @@ int main(int argc, char *argv[])
     {
         masses[i] = 1.0f;
     }
-    simData.masses.setOpenCLContext(oclvars.GLCLContext);
-    simData.masses.setOpenCLCommandQueue(oclvars.queue);
-    simData.masses.allocate(sizeof(cl_float), simData.particles_size);
-    simData.masses.write(simData.particles_size, &masses[0]);
-    clSetKernelArg(progs.predictionKernel, 3, sizeof(cl_mem), &simData.masses.getCLMem());
+    simData.masses = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float), simData.particles_size);
+/*    simData.masses->setOpenCLContext(oclvars.GLCLContext);
+    simData.masses->setOpenCLCommandQueue(oclvars.queue);
+    simData.masses->allocate(sizeof(cl_float), simData.particles_size);*/
+    simData.masses->write(simData.particles_size, &masses[0]);
+    clSetKernelArg(progs.predictionKernel, 3, sizeof(cl_mem), &simData.masses->getCLMem());
 
     // init scaled masses buffer
     vector<cl_float> scaledMasses(simData.particles_size);
@@ -446,11 +484,14 @@ int main(int argc, char *argv[])
     {
         scaledMasses[i] = 1.0f;
     }
-    simData.scaledMasses.setOpenCLContext(oclvars.GLCLContext);
-    simData.scaledMasses.setOpenCLCommandQueue(oclvars.queue);
-    simData.scaledMasses.allocate(sizeof(cl_float), simData.particles_size);
-    simData.scaledMasses.write(simData.particles_size, &scaledMasses[0]);
-    clSetKernelArg(progs.predictionKernel, 4, sizeof(cl_mem), &simData.scaledMasses.getCLMem());
+
+    simData.scaledMasses = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(cl_float), simData.particles_size);
+/*    simData.scaledMasses.reset(&scaledMasses_buffer);
+    simData.scaledMasses->setOpenCLContext(oclvars.GLCLContext);
+    simData.scaledMasses->setOpenCLCommandQueue(oclvars.queue);
+    simData.scaledMasses->allocate(sizeof(cl_float), simData.particles_size);*/
+    simData.scaledMasses->write(simData.particles_size, &scaledMasses[0]);
+    clSetKernelArg(progs.predictionKernel, 4, sizeof(cl_mem), &simData.scaledMasses->getCLMem());
 
     // init plane buffer
     // layout = n.x n.y n.z d | n = plane normal
@@ -463,11 +504,12 @@ int main(int argc, char *argv[])
     plane.z = 0.0f;
     plane.w = 0.0f;
 
-    simData.planes.setOpenCLContext(oclvars.GLCLContext);
-    simData.planes.setOpenCLCommandQueue(oclvars.queue);
-    simData.planes.allocate(sizeof(cl_float4),simData.numPlanes);
-    simData.planes.write(simData.numPlanes,&plane);
-    clSetKernelArg(progs.planeCollKernel,2, sizeof(cl_mem),&simData.planes.getCLMem());
+    simData.planes = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(cl_float4),simData.numPlanes);
+/*    simData.planes->setOpenCLContext(oclvars.GLCLContext);
+    simData.planes->setOpenCLCommandQueue(oclvars.queue);
+    simData.planes->allocate(sizeof(cl_float4),simData.numPlanes);*/
+    simData.planes->write(simData.numPlanes,&plane);
+    clSetKernelArg(progs.planeCollKernel,2, sizeof(cl_mem),&simData.planes->getCLMem());
 
     // init additional buffers
     glGenBuffers(1, &renderData.cameraBuffer);
