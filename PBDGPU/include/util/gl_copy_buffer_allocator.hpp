@@ -30,6 +30,8 @@ namespace pbdgpu {
 
         virtual void releaseFromCL(cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) override;
 
+        virtual void write(size_t numElems, const void *data) override;
+
         virtual void free() override;
 
         virtual void allocate(const size_t sizeOfElement, const size_t length) override;

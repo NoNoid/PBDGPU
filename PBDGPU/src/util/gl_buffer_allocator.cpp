@@ -56,10 +56,8 @@ namespace pbdgpu
 
     void GLBufferAllocator::write(size_t numElems, const void *data)
 	{
-		if (numElems > size)
-		{
-            return;
-		}
+		assert(numElems <= size);
+
 		GLint previousBuffer;
 		glGetIntegerv(bufferTargetBinding, &previousBuffer);
 		glBindBuffer(bufferTarget, bufferID);

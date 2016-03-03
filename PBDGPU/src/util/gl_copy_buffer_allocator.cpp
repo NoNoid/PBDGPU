@@ -11,7 +11,7 @@ namespace pbdgpu {
     {
         this->sharingContext = context;
         this->queue = queue;
-        //clMem = clCreateBuffer(context, memFlags, getSizeinBytes(), nullptr, nullptr);
+        //clSharingMem = clCreateBuffer(context, memFlags, getSizeinBytes(), nullptr, nullptr);
     }
 
     void GLCopyBufferAllocator::releaseFromCL(cl_uint num_events_in_wait_list, const cl_event *event_wait_list,
@@ -32,7 +32,7 @@ namespace pbdgpu {
 
         assert(error==0 && "Error in GLCopyBufferAllocator::releaseFromCL while mapping");
 
-        write(getSize(),ptr);
+        GLBufferAllocator::write(getSize(),ptr);
 
         error = clEnqueueUnmapMemObject(queue,
                                  clSharingMem,
@@ -65,5 +65,21 @@ namespace pbdgpu {
 
         assert(error == 0 && "Error while creating buffer.");
 
+    }
+
+    void GLCopyBufferAllocator::write(size_t numElems, const void *data) {
+
+        GLBufferAllocator::write(numElems, data);
+
+        clEnqueueWriteBuffer(
+                queue,
+                clSharingMem,
+                true,
+                0,
+                size*sizeOfElement,
+                data,
+                0,
+                nullptr,
+                nullptr);
     }
 }
