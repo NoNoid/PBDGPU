@@ -64,6 +64,8 @@ static struct renderData
 {
     unsigned int particlesVAO = 0;
     unsigned int cameraBuffer = 0;
+    unsigned int planeBuffer = 0;
+    unsigned int planeVAO = 0;
 } renderData;
 
 static struct gpuprograms
@@ -211,10 +213,9 @@ void display(void) {
 
     simData.particles->acquireForCL(0,nullptr, nullptr);
 
-/*
     for (unsigned int i = 0; i < simParams.numSteps; ++i)
     {
-        cl_event predKernelEvent = nullptr;
+
         int cl_err = clEnqueueNDRangeKernel(
                 oclvars.queue,
                 progs.predictionKernel,
@@ -225,7 +226,6 @@ void display(void) {
             printf("Error on Prediction Kernel Execution:%d \n",cl_err);
         }
 
-        cl_event planeCollEvent = nullptr;
         cl_err = clEnqueueNDRangeKernel(
                 oclvars.queue,
                 progs.planeCollKernel,
@@ -236,7 +236,6 @@ void display(void) {
             printf("Error on Plane Collision Kernel Execution:%d \n",cl_err);
         }
 
-        cl_event updateKernelEvent = nullptr;
         cl_err = clEnqueueNDRangeKernel(
                 oclvars.queue,
                 progs.updateKernel,
@@ -247,7 +246,7 @@ void display(void) {
             printf("Error on Update Kernel Execution:%d \n",cl_err);
         }
     }
-*/
+
     simData.particles->releaseFromCL(0, nullptr, nullptr);
 
     // Draw
@@ -261,20 +260,12 @@ void display(void) {
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, glm::value_ptr(viewMat));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+    glUseProgram(progs.particleShaderProgram);
     // draw groundplane
-    glColor3f(0.5f,0.5f,0.5f);
-    glBegin(GL_QUADS);
-        glVertex3f(-100.0f,0.0f,100.0f);
-        glVertex3f(100.0f,0.0f,100.0f);
-        glVertex3f(100.0f,0.0f,-100.0f);
-        glVertex3f(-100.0f,0.0f,-100.0f);
-    glEnd();
-    glColor3f(1.0f,1.0f,1.0f);
+    //glBindVertexArray(renderData.planeVAO);
+    //glDrawArrays(GL_QUAD_STRIP, 0, 4);
 
     // draw particles
-    glUseProgram(progs.particleShaderProgram);
-    //glBindBuffer(GL_ARRAY_BUFFER,buffers.positions.getBufferID());
-
     glBindVertexArray(renderData.particlesVAO);
     glDrawArrays(GL_POINTS, 0, simData.particles_size);
 
@@ -522,6 +513,23 @@ int main(int argc, char *argv[])
     }
     glUniformBlockBinding(progs.particleShaderProgram, uniformBlockIndex, 0);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, renderData.cameraBuffer, 0, sizeof(float) * 32);
+
+    vector<float> planeVerts = {
+            -100.0f,0.0f,100.0f,
+            100.0f,0.0f,100.0f,
+            100.0f,0.0f,-100.0f,
+            -100.0f,0.0f,-100.0f};
+
+    glGenBuffers(1, &renderData.planeBuffer);
+    glBindBuffer(GL_UNIFORM_BUFFER, renderData.planeBuffer);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 12, &planeVerts[0], GL_STREAM_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    glGenVertexArrays(1,&renderData.planeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, renderData.planeBuffer);
+    glBindVertexArray(renderData.planeVAO);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,sizeof(float),NULL);
+    glEnableVertexAttribArray(0);
 
     // start app
 
