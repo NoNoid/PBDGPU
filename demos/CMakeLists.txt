@@ -7,7 +7,9 @@ include_directories(${GLM_INCLUDE_DIRS} ${GLUT_INCLUDE_DIR} ../PBDGPU/external/c
 
 set(SHADERS
     shaders/particle.vert
-    shaders/particle.frag)
+    shaders/particle.frag
+    shaders/plane.vert
+    shaders/plane.frag)
 
 file(COPY ${SHADERS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 
