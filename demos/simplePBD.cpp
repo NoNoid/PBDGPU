@@ -35,7 +35,7 @@ static struct simData
     simData()
     {
         g.x = 0.0f;
-        g.y = -0.01f;
+        g.y = -1.0f;
         g.z = 0.0f;
     }
 
@@ -54,7 +54,7 @@ static struct simData
 
 static struct simulationParameters
 {
-    unsigned int numSteps = 3;
+    unsigned int numSteps = 1;
     float timePerFrame = 30.f;
     cl_float dt = (1.0f/timePerFrame)/cl_float(numSteps);
     std::chrono::time_point<std::chrono::high_resolution_clock> lastTime;
@@ -70,12 +70,17 @@ static struct renderData
 
 static struct gpuprograms
 {
-    GLuint vertexShader = 0;
-    GLuint fragmentShader = 0;
+    GLuint particleVertexShader = 0;
+    GLuint particleFragmentShader = 0;
+    GLuint planeVertexShader = 0;
+    GLuint planeFragmentShader = 0;
     GLuint particleShaderProgram = 0;
+    GLuint planeShaderProgram = 0;
     cl_kernel predictionKernel = nullptr;
     cl_kernel updateKernel;
     cl_kernel planeCollKernel;
+    GLint particleShaderProgramVertexAttribLocation;
+    GLint planeShaderProgramVertexAttribLocation;
 } progs;
 
 static struct oclvars
@@ -260,12 +265,13 @@ void display(void) {
     glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float) * 16, sizeof(float) * 16, glm::value_ptr(viewMat));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    glUseProgram(progs.particleShaderProgram);
     // draw groundplane
-    //glBindVertexArray(renderData.planeVAO);
-    //glDrawArrays(GL_QUAD_STRIP, 0, 4);
+    glUseProgram(progs.planeShaderProgram);
+    glBindVertexArray(renderData.planeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
     // draw particles
+    glUseProgram(progs.particleShaderProgram);
     glBindVertexArray(renderData.particlesVAO);
     glDrawArrays(GL_POINTS, 0, simData.particles_size);
 
@@ -321,12 +327,21 @@ int main(int argc, char *argv[])
     glEnable(GL_POINT_SMOOTH);
     glPointSize(5.0f);
 
-    progs.vertexShader = pbdgpu::createShader(pbdgpu::readFile("shaders/particle.vert"),GL_VERTEX_SHADER);
-    progs.fragmentShader = pbdgpu::createShader(pbdgpu::readFile("shaders/particle.frag"),GL_FRAGMENT_SHADER);
-    progs.particleShaderProgram = pbdgpu::createProgram(progs.vertexShader,0,0,progs.fragmentShader);
+    progs.particleVertexShader = pbdgpu::createShader(pbdgpu::readFile("shaders/particle.vert"), GL_VERTEX_SHADER);
+    progs.particleFragmentShader = pbdgpu::createShader(pbdgpu::readFile("shaders/particle.frag"), GL_FRAGMENT_SHADER);
+    progs.planeVertexShader = pbdgpu::createShader(pbdgpu::readFile("shaders/plane.vert"),GL_VERTEX_SHADER);
+    progs.planeFragmentShader = pbdgpu::createShader(pbdgpu::readFile("shaders/plane.frag"),GL_FRAGMENT_SHADER);
 
-    glDeleteShader(progs.vertexShader);
-    glDeleteShader(progs.fragmentShader);
+    progs.particleShaderProgram = pbdgpu::createProgram(progs.particleVertexShader, 0, 0, progs.particleFragmentShader);
+    progs.particleShaderProgramVertexAttribLocation = glGetAttribLocation(progs.particleShaderProgram,"position");
+
+    progs.planeShaderProgram = pbdgpu::createProgram(progs.planeVertexShader, 0, 0, progs.planeFragmentShader);
+    progs.planeShaderProgramVertexAttribLocation = glGetAttribLocation(progs.planeShaderProgram,"position");
+
+    glDeleteShader(progs.particleVertexShader);
+    glDeleteShader(progs.particleFragmentShader);
+    glDeleteShader(progs.planeVertexShader);
+    glDeleteShader(progs.planeFragmentShader);
 
     // init OpenCL
 
@@ -516,20 +531,22 @@ int main(int argc, char *argv[])
 
     vector<float> planeVerts = {
             -100.0f,0.0f,100.0f,
+            -100.0f,0.0f,-100.0f,
             100.0f,0.0f,100.0f,
+            -100.0f,0.0f,-100.0f,
             100.0f,0.0f,-100.0f,
-            -100.0f,0.0f,-100.0f};
+            100.0f,0.0f,100.0f};
 
     glGenBuffers(1, &renderData.planeBuffer);
     glBindBuffer(GL_UNIFORM_BUFFER, renderData.planeBuffer);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 12, &planeVerts[0], GL_STREAM_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 18, &planeVerts[0], GL_STREAM_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     glGenVertexArrays(1,&renderData.planeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, renderData.planeBuffer);
     glBindVertexArray(renderData.planeVAO);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,sizeof(float),NULL);
-    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,NULL);
+    glEnableVertexAttribArray(1);
 
     // start app
 
