@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
         pos[i].phase = 1;
     }
 
-    simData.particles = std::make_shared<pbdgpu::GLCopyBufferAllocator>(sizeof(pbd_particle), simData.particles_size,oclvars.GLCLContext,oclvars.queue);
+    simData.particles = pbdgpu::createSharedBuffer(useSharing,sizeof(pbd_particle), simData.particles_size,oclvars.GLCLContext,oclvars.queue);
     simData.particles->write(simData.particles_size, &pos[0]);
     clSetKernelArg(progs.predictionKernel, 0, sizeof(cl_mem), &simData.particles->getCLMem());
     clSetKernelArg(progs.updateKernel,0,sizeof(cl_mem), &simData.particles->getCLMem());

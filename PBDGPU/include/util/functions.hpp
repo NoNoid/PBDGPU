@@ -3,8 +3,10 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include <clew.h>
+#include <util/gl_copy_buffer_allocator.hpp>
 
 using std::string;
 using std::vector;
@@ -18,6 +20,13 @@ using std::vector;
  */
 namespace pbdgpu
 {
+
+    std::shared_ptr<pbdgpu::GLBufferAllocator> createSharedBuffer(
+            const bool useSharing,
+            const size_t sizeOfElement,
+            const size_t size,
+            const cl_context context,
+            const cl_command_queue queue);
 
     /** @fn vector<cl_context_properties> getOGLInteropInfo(cl_device_id &out_device);
      * A function to search for the OpenCL Device which is associated with the current OpenGL context.

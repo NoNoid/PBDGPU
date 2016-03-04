@@ -77,7 +77,7 @@ vector<cl_context_properties> pbdgpu::getOGLInteropInfo(cl_device_id &out_device
         return properties;
 	}
 
-	fprintf(stderr,"Could not find a OpenCL platform with active OpenGL interop device.\nPlease Install the required OpenCL SDK's for your GPU or activate your preffered GPU (Dual-GPU Laptop)\n.");
+	fprintf(stderr,"Could not find a OpenCL platform with active OpenGL interop device.\nPlease Install the required OpenCL SDK's for your GPU or activate your preffered GPU (Dual-GPU Laptop).\n");
 	
     return vector<cl_context_properties>();
 }
@@ -218,4 +218,26 @@ cl_kernel pbdgpu::createKernel(string kernelSource,string buildOptions, string k
         return nullptr;
     }
     return kernel;
+}
+
+std::shared_ptr<pbdgpu::GLBufferAllocator> pbdgpu::createSharedBuffer(const bool useSharing,
+                                                                      const size_t sizeOfElement,
+                                                                      const size_t size,
+                                                                      const cl_context context,
+                                                                      const cl_command_queue queue) {
+
+    if(useSharing)
+    {
+        return std::make_shared<GLBufferAllocator>(
+                sizeOfElement,
+                size,
+                context,
+                queue);
+    }else{
+        return std::make_shared<GLCopyBufferAllocator>(
+                sizeOfElement,
+                size,
+                context,
+                queue);
+    }
 }
