@@ -3,9 +3,18 @@
 
 #include <cstddef>
 #include <clew.h>
+#include <string>
+
+using std::string;
 
 namespace pbdgpu
 {
+    const static string PARTICLE_BUFFER_NAME = "particles";
+    const static string EXTERNAL_FORCES_BUFFER_NAME = "externalForces";
+    const static string PREDICTED_POSITIONS_BUFFER_NAME = "predictedPositions";
+    const static string MASSES_BUFFER_NAME = "masses";
+    const static string SCALED_MASSES_BUFFER_NAME = "scaledMasses";
+
     /**
      * @brief An abstract class to define an interface for GPU memory Allocators.
      */

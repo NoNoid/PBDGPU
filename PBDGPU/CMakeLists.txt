@@ -23,7 +23,10 @@ add_library(pbdgpu STATIC
 	
 	include/util/functions.hpp
 	src/util/functions.cpp
-	)
+	include/simulation_data.hpp
+	include/constraint.hpp
+	src/simulation_data.cpp
+	src/constraint.cpp)
 
 file(GLOB KERNEL_HEADERS include/kernelInclude/*.h)
 file(GLOB KERNEL_SOURCES src/kernelSrc/*.cl)
