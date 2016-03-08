@@ -26,7 +26,11 @@ add_library(pbdgpu STATIC
 	include/simulation_data.hpp
 	include/constraint.hpp
 	src/simulation_data.cpp
-	src/constraint.cpp)
+	src/constraint.cpp
+	include/constraints/common_constraint.hpp
+	src/constraints/common_constraint.cpp
+	include/constraints/plane_collision_constraint.hpp
+	src/constraints/plane_collision_constraint.cpp)
 
 file(GLOB KERNEL_HEADERS include/kernelInclude/*.h)
 file(GLOB KERNEL_SOURCES src/kernelSrc/*.cl)
