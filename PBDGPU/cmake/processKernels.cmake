@@ -13,5 +13,7 @@ file(READ ${DIR}/src/kernelSrc/prediction.cl PREDICTION_KERNEL)
 file(READ ${DIR}/include/kernelInclude/particle.h PARTICLE_HEADER)
 file(READ ${DIR}/src/kernelSrc/update.cl UPDATE_KERNEL)
 file(READ ${DIR}/src/kernelSrc/planeCollision.cl PLANE_COLL_KERNEL)
+file(READ ${DIR}/include/kernelInclude/distanceConstraintData.h DISTANCE_CONSTRAINT_DATA_HEADER)
+file(READ ${DIR}/src/kernelSrc/distanceConstraint.cl DISTANCE_CONSTRAINT_KERNEL_SOURCE)
 
 configure_file(${DIR}/cmake/kernels.cpp.in ${DIR}/src/kernels.cpp @ONLY)

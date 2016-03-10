@@ -10,6 +10,8 @@ namespace pbdgpu {
     cl_kernel buildUpdateKernel(cl_context context, cl_device_id device);
 
     cl_kernel buildPlaneCollisionKernel(cl_context context, cl_device_id device);
+
+    cl_kernel buildDistanceConstraintKernel(cl_context context, cl_device_id device);
 }
 
 #endif

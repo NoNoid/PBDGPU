@@ -23,6 +23,16 @@ R"END(
 @PARTICLE_HEADER@
 )END");
 
+static const string distanceConstraintDataHeader(
+R"END(
+@DISTANCE_CONSTRAINT_DATA_HEADER@
+)END");
+
+static const string distanceConstraintKernelSource(
+R"END(
+@DISTANCE_CONSTRAINT_KERNEL_SOURCE@
+)END");
+
 static const string standardCompilerOptions("-D cl_float4=float4 -D cl_float3=float3 -D cl_float=float -D cl_int=int");
 
 cl_kernel pbdgpu::buildPredictionKernel(cl_context context,cl_device_id device)
@@ -39,4 +49,9 @@ cl_kernel pbdgpu::buildUpdateKernel(cl_context context, cl_device_id device)
 cl_kernel pbdgpu::buildPlaneCollisionKernel(cl_context context,cl_device_id device)
 {
     return pbdgpu::createKernel(particleHeader+kernelCollSource,standardCompilerOptions,"planeCollision",context,device);
+}
+
+cl_kernel pbdgpu::buildDistanceConstraintKernel(cl_context context, cl_device_id device)
+{
+    return pbdgpu::createKernel(particleHeader+distanceConstraintDataHeader+distanceConstraintKernelSource,standardCompilerOptions,"distanceConstraint",context,device);
 }
