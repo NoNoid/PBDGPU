@@ -27,6 +27,8 @@
 #include <constraints/plane_collision_constraint.hpp>
 
 #include <simulation_data.hpp>
+#include <kernelInclude/distanceConstraintData.h>
+#include <constraints/distance_constraint.hpp>
 
 using glm::vec3;
 using glm::mat4;
@@ -40,6 +42,7 @@ static struct simData
     std::shared_ptr<pbdgpu::CLBufferAllocator> masses;
     std::shared_ptr<pbdgpu::CLBufferAllocator> scaledMasses;
     std::shared_ptr<pbdgpu::CLBufferAllocator> planes;
+    std::shared_ptr<pbdgpu::CLBufferAllocator> distanceData;
 
     std::shared_ptr<pbdgpu::SimulationData> SData;
 
@@ -262,6 +265,7 @@ void atClose()
     simData.masses->free();
     simData.scaledMasses->free();
     simData.planes->free();
+    simData.distanceData->free();
 }
 
 int main(int argc, char *argv[])
@@ -466,6 +470,22 @@ int main(int argc, char *argv[])
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,NULL);
     glEnableVertexAttribArray(1);
 
+    // init distance constraint data
+
+    vector<pbd_distanceConstraintData> distanceConstraintData;
+
+    for(int i = 1; i < 100; ++i) {
+        pbd_distanceConstraintData data;
+        data.d = 0.5f;
+        data.index0 = 0;
+        data.index1 = i;
+        distanceConstraintData.push_back(data);
+    }
+
+    simData.distanceData = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(pbd_distanceConstraintData),distanceConstraintData.size());
+    simData.distanceData->write(distanceConstraintData.size(),&distanceConstraintData[0]);
+
+
     // init constraints
 
     simData.SData = std::make_shared<pbdgpu::SimulationData>(simData.particles_size,oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue);
@@ -478,6 +498,7 @@ int main(int argc, char *argv[])
     simData.SData->initStandardKernels();
 
     simData.SData->buildConstraint<pbdgpu::PlaneCollisionConstraint>(simData.planes);
+    simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
 
     // start app
 
