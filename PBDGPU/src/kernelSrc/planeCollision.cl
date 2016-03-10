@@ -20,8 +20,9 @@ private uint numPlanes)
     if(C < 0)
     {
         float w = p[i].invmass;
-        float s = C/(w*dot(n,n));
-        float3 dX = - (C/dot(n,n)*n);
+        float s = C/w;
+        //float3 dX = - (C/dot(n,n)*n);
+        float3 dX = - s*w*n;
 
         pred_x[i] = currentPos + dX;
     }
