@@ -2,7 +2,8 @@ kernel void planeCollision(
 global pbd_particle *p,
 global float3 *pred_x,
 global float4 *planes,
-private uint numPlanes)
+private uint numPlanes,
+constant pbd_simulationParameters *params)
 {
     size_t i = get_global_id(0);
 
@@ -24,7 +25,8 @@ private uint numPlanes)
         //float3 dX = - (C/dot(n,n)*n);
         float3 dX = - s*w*n;
 
-        pred_x[i] = currentPos + dX;
+        float k_2 = pow(1.f-(1.f-0.9f),1.f/params->numIterations);
+        pred_x[i] = currentPos + k_2 * dX;
     }
 
 }

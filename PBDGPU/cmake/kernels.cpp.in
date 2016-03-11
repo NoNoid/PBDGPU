@@ -3,6 +3,11 @@
 #include <kernels.hpp>
 #include <util/functions.hpp>
 
+static const string simulationParametersHeader(
+R"END(
+@SIMULATION_PARAMETERS_HEADER@
+)END");
+
 static const string predictionSource(
 R"END(
 @PREDICTION_KERNEL@
@@ -33,25 +38,25 @@ R"END(
 @DISTANCE_CONSTRAINT_KERNEL_SOURCE@
 )END");
 
-static const string standardCompilerOptions("-D cl_float4=float4 -D cl_float3=float3 -D cl_float=float -D cl_int=int");
+static const string standardCompilerOptions("-D cl_float4=float4 -D cl_float3=float3 -D cl_float=float -D cl_int=int -D cl_uint=uint");
 
 cl_kernel pbdgpu::buildPredictionKernel(cl_context context,cl_device_id device)
 {
 
-    return pbdgpu::createKernel(particleHeader + predictionSource,standardCompilerOptions,"prediction",context,device);
+    return pbdgpu::createKernel(particleHeader + simulationParametersHeader + predictionSource,standardCompilerOptions,"prediction",context,device);
 }
 
 cl_kernel pbdgpu::buildUpdateKernel(cl_context context, cl_device_id device)
 {
-    return pbdgpu::createKernel(particleHeader+updateSource,standardCompilerOptions,"update",context,device);
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+updateSource,standardCompilerOptions,"update",context,device);
 }
 
 cl_kernel pbdgpu::buildPlaneCollisionKernel(cl_context context,cl_device_id device)
 {
-    return pbdgpu::createKernel(particleHeader+kernelCollSource,standardCompilerOptions,"planeCollision",context,device);
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+kernelCollSource,standardCompilerOptions,"planeCollision",context,device);
 }
 
 cl_kernel pbdgpu::buildDistanceConstraintKernel(cl_context context, cl_device_id device)
 {
-    return pbdgpu::createKernel(particleHeader+distanceConstraintDataHeader+distanceConstraintKernelSource,standardCompilerOptions,"distanceConstraint",context,device);
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+distanceConstraintDataHeader+distanceConstraintKernelSource,standardCompilerOptions,"distanceConstraint",context,device);
 }

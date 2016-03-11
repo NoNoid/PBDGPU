@@ -40,6 +40,7 @@ namespace pbdgpu
         cl_command_queue queue;
         shared_ptr<GPUMemAllocator> predictedPositionBuffer;
         shared_ptr<GPUMemAllocator> dataBuffer;
+        shared_ptr<GPUMemAllocator> simParamBuffer;
     };
 }
 

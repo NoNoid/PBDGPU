@@ -47,6 +47,9 @@ void pbdgpu::PlaneCollisionConstraint::initKernel(
         assert(cl_err == CL_SUCCESS && "Error while setting kernel arguments" );
     }
 
+    assert(simParamBuffer && "data buffer is null");
+    assert(clSetKernelArg(kernel,4,sizeof(cl_mem),&simParamBuffer->getCLMem()) == CL_SUCCESS);
+
 }
 
 void pbdgpu::PlaneCollisionConstraint::update()
@@ -102,4 +105,5 @@ void pbdgpu::PlaneCollisionConstraint::getSharedBuffers(
     CommonConstraint::getSharedBuffers(sharedBuffers);
 
     predictedPositionBuffer = getBufferChecked(sharedBuffers,PREDICTED_POSITIONS_BUFFER_NAME);
+    simParamBuffer = getBufferChecked(sharedBuffers,SIMULATION_PARAMETERS);
 }

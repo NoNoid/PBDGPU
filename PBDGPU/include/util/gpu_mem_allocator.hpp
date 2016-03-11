@@ -14,6 +14,7 @@ namespace pbdgpu
     const static string PREDICTED_POSITIONS_BUFFER_NAME = "predictedPositions";
     const static string MASSES_BUFFER_NAME = "masses";
     const static string SCALED_MASSES_BUFFER_NAME = "scaledMasses";
+    const static string SIMULATION_PARAMETERS = "simulationParameters";
 
     /**
      * @brief An abstract class to define an interface for GPU memory Allocators.

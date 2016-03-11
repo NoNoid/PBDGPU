@@ -18,6 +18,7 @@ namespace pbdgpu
 
         shared_ptr<GPUMemAllocator> predictedPositionBuffer;
         shared_ptr<GPUMemAllocator> planeBuffer;
+        shared_ptr<GPUMemAllocator> simParamBuffer;
 
     public:
 

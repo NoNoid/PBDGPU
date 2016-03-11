@@ -4,17 +4,16 @@ kernel void prediction(
     global float3 *pred_x,
     global float *m,
     global float *scaled_m,
-    private float3 g,
-    private float dt)
+    constant pbd_simulationParameters *params)
 {
     size_t i = get_global_id(0);
 
     pbd_particle particle = p[i];
     float3 externalForce = fext[i];    
   
-    float3 vel = particle.v + ((externalForce + g) * particle.invmass * dt);
+    float3 vel = particle.v + ((externalForce + params->gravity) * particle.invmass * params->timeStep);
     p[i].v = vel;
-    pred_x[i] = particle.x + (vel * dt);
+    pred_x[i] = particle.x + (vel * params->timeStep);
 
     float mass = m[i];
     float height = pred_x[i].z;

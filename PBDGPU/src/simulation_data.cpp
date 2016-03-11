@@ -5,6 +5,8 @@
 #include <simulation_data.hpp>
 #include <kernels.hpp>
 #include <cassert>
+#include <util/cl_buffer_allocator.hpp>
+#include <kernelInclude/simulation_parameters.h>
 
 void pbdgpu::SimulationData::addConstraint(shared_ptr<Constraint> Constraint)
 {
@@ -103,7 +105,8 @@ void pbdgpu::SimulationData::initUpdateKernel() {
         assert(cl_err == CL_SUCCESS && "Error while setting kernel arguments" );
     }
 
-    cl_err = clSetKernelArg(this->updateKernel, 2, sizeof(cl_float), &this->timeStep);
+    buffer = pbdgpu::getBufferChecked(this->sharedBuffers, pbdgpu::SIMULATION_PARAMETERS);
+    cl_err = clSetKernelArg(this->updateKernel, 2, sizeof(cl_mem), &buffer->getCLMem());
     if(cl_err != CL_SUCCESS)
     {
         fprintf(stderr,"cl error %d\n",cl_err);
@@ -156,17 +159,31 @@ void pbdgpu::SimulationData::initPredictionKernel() {
         assert(cl_err == CL_SUCCESS && "Error while setting kernel arguments" );
     }
 
-    cl_err = clSetKernelArg(this->predictionKernel, 5, sizeof(cl_float3), &this->gravityVector);
+    buffer = pbdgpu::getBufferChecked(this->sharedBuffers, pbdgpu::SIMULATION_PARAMETERS);
+    cl_err = clSetKernelArg(this->predictionKernel, 5, sizeof(cl_mem), &buffer->getCLMem());
     if(cl_err != CL_SUCCESS)
     {
         fprintf(stderr,"cl error %d\n",cl_err);
         assert(cl_err == CL_SUCCESS && "Error while setting kernel arguments" );
     }
 
-    cl_err = clSetKernelArg(this->predictionKernel, 6, sizeof(cl_float), &this->timeStep);
-    if(cl_err != CL_SUCCESS)
-    {
-        fprintf(stderr,"cl error %d\n",cl_err);
-        assert(cl_err == CL_SUCCESS && "Error while setting kernel arguments" );
-    }
+}
+
+void pbdgpu::SimulationData::initSimParamMemory()
+{
+    simParamBuffer = std::make_shared<CLBufferAllocator>(context,kernel_queue,sizeof(pbd_simulationParameters),1,CL_MEM_READ_WRITE);
+
+    pbd_simulationParameters d;
+    d.gravity = gravityVector;
+    d.numIterations = 1;
+    d.timeStep = timeStep;
+
+    simParamBuffer->write(1,&d);
+
+    sharedBuffers.insert(std::pair<string,shared_ptr<GPUMemAllocator> >(SIMULATION_PARAMETERS,simParamBuffer));
+}
+
+pbdgpu::SimulationData::~SimulationData()
+{
+    simParamBuffer->free();
 }

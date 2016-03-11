@@ -17,6 +17,7 @@ using std::unordered_map;
 
 #include <util/gpu_mem_allocator.hpp>
 #include <constraint.hpp>
+#include <util/cl_buffer_allocator.hpp>
 
 namespace pbdgpu
 {
@@ -39,7 +40,11 @@ namespace pbdgpu
             gravityVector.y = -1.f;
             gravityVector.z = 0.f;
             gravityVector.w = 0.f;
+
+            initSimParamMemory();
         };
+
+        ~SimulationData();
 
         template<typename _Tp, typename... _Args>
         void buildConstraint(_Args&&... __args)
@@ -66,6 +71,7 @@ namespace pbdgpu
         unordered_map<string,shared_ptr<GPUMemAllocator> > sharedBuffers;
         vector<shared_ptr<Constraint> > Constraints;
         vector<shared_ptr<Constraint> > ConstraintsNeedingAcquisition;
+        shared_ptr<CLBufferAllocator> simParamBuffer;
 
         cl_context context;
         cl_device_id device;
@@ -77,6 +83,8 @@ namespace pbdgpu
         void addConstraint(shared_ptr<Constraint> Constraint);
         void initPredictionKernel();
         void initUpdateKernel();
+
+        void initSimParamMemory();
     };
 }
 

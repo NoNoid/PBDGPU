@@ -27,6 +27,7 @@ bool pbdgpu::DistanceConstraint::needsAcquisition() {
 void pbdgpu::DistanceConstraint::getSharedBuffers(unordered_map<string, shared_ptr<GPUMemAllocator> > sharedBuffers) {
     CommonConstraint::getSharedBuffers(sharedBuffers);
     predictedPositionBuffer = getBufferChecked(sharedBuffers,PREDICTED_POSITIONS_BUFFER_NAME);
+    simParamBuffer = getBufferChecked(sharedBuffers,SIMULATION_PARAMETERS);
 }
 
 void pbdgpu::DistanceConstraint::initKernel(const cl_context context, const cl_device_id device,
@@ -44,5 +45,8 @@ void pbdgpu::DistanceConstraint::initKernel(const cl_context context, const cl_d
 
     assert(dataBuffer && "data buffer is null");
     assert(clSetKernelArg(kernel,2,sizeof(cl_mem),&dataBuffer->getCLMem()) == CL_SUCCESS);
+
+    assert(simParamBuffer && "simParam buffer is null");
+    assert(clSetKernelArg(kernel,3,sizeof(cl_mem),&simParamBuffer->getCLMem()) == CL_SUCCESS);
 
 }

@@ -1,7 +1,8 @@
 kernel void distanceConstraint(
 global pbd_particle* p,
 global float3* pred_pos,
-global pbd_distanceConstraintData* data)
+global pbd_distanceConstraintData* data,
+constant pbd_simulationParameters *params)
 
 {
     size_t i = get_global_id(0);
@@ -21,7 +22,7 @@ global pbd_distanceConstraintData* data)
     float3 derivate = difference/distance;
     float s = (distance - d.d)/(w1 + w2);
 
-    float k_2 = 1-(1-0.9);
+    float k_2 = pow(1.f-(1.f-0.9f),1.f/params->numIterations);
     float3 dp1 = - (k_2) * s * w1 * derivate;
     float3 dp2 = (k_2) * s * w2 * derivate;
 
