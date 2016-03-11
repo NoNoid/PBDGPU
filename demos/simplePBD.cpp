@@ -498,7 +498,7 @@ int main(int argc, char *argv[])
     simData.SData->initStandardKernels();
 
     simData.SData->buildConstraint<pbdgpu::PlaneCollisionConstraint>(simData.planes);
-    simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
+    //simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
 
     // start app
 
