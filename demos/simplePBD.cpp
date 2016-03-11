@@ -474,11 +474,11 @@ int main(int argc, char *argv[])
 
     vector<pbd_distanceConstraintData> distanceConstraintData;
 
-    for(int i = 1; i < 100; ++i) {
+    for(int i = 0; i < 100; i=i+2){
         pbd_distanceConstraintData data;
         data.d = 0.5f;
-        data.index0 = 0;
-        data.index1 = i;
+        data.index0 = i;
+        data.index1 = i+1;
         distanceConstraintData.push_back(data);
     }
 
