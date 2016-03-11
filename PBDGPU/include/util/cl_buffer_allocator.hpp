@@ -20,10 +20,10 @@ public:
      * @param commandQueue An OpenCL command queue.
      * @param size Number of Elements in the buffer.
      */
-    CLBufferAllocator(cl_context context = nullptr, cl_command_queue commandQueue = nullptr, const size_t sizeOfElement = 0, const size_t size = 0) :
+    CLBufferAllocator(cl_context context, cl_command_queue commandQueue, const size_t sizeOfElement, const size_t size, const cl_mem_flags memFlags = CL_MEM_READ_WRITE) :
         context(context),
         commandQueue(commandQueue),
-        memFlags(CL_MEM_READ_WRITE)
+        memFlags(memFlags)
     {allocate(sizeOfElement,size);}
 
     virtual ~CLBufferAllocator();
