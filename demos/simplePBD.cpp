@@ -266,6 +266,8 @@ void atClose()
     simData.scaledMasses->free();
     simData.planes->free();
     simData.distanceData->free();
+
+    simData.SData.reset();
 }
 
 int main(int argc, char *argv[])
