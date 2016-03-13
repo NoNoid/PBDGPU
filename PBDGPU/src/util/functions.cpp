@@ -197,7 +197,11 @@ cl_kernel pbdgpu::createKernel(string kernelSource,string buildOptions, string k
         clGetProgramBuildInfo(kernelProgram, device, CL_PROGRAM_BUILD_LOG, len, &BLog[0], NULL);
         clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,retSourceSize,&retSource[0],NULL);
 
-        fprintf(stderr,"In Kernel Source ... \n\n%s\n\n ... occured the following Errors:\n\n%s", &retSource[0],&BLog[0]);
+        string test(&retSource[0],retSourceSize);
+        insertLineNumbers(test);
+
+
+        fprintf(stderr,"In Kernel Source ... \n\n%s\n\n ... occured the following Errors:\n\n%s", test.c_str(),&BLog[0]);
 
         return nullptr;
     }
@@ -213,12 +217,30 @@ cl_kernel pbdgpu::createKernel(string kernelSource,string buildOptions, string k
         vector<char> retSource(retSourceSize);
         clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,retSourceSize,&retSource[0],NULL);
 
-        fprintf(stderr,"Error: %d while creating kernel: '%s'.\n\nFrom Source:\n%s",err,kernelName.c_str(),&retSource[0]);
+        string test(&retSource[0],retSourceSize);
+        insertLineNumbers(test);
+
+        fprintf(stderr,"Error: %d while creating kernel: '%s'.\n\nFrom Source:\n%s",err,kernelName.c_str(),test.c_str());
 
         return nullptr;
     }
     return kernel;
 }
+
+void pbdgpu::insertLineNumbers(string &sourceString) {
+    string lineEnd("\n");
+
+
+    int i = 0;
+    size_t pos = sourceString.find(lineEnd, 0);
+    const int offset = 2;
+    while(pos != std::basic_string<char>::npos) {
+            pos = sourceString.find(lineEnd, pos + 1);
+            ++i;
+            sourceString.insert(pos + 1, std::to_string(i + offset) + ":  ");
+        }
+}
+
 
 std::shared_ptr<pbdgpu::GLBufferAllocator> pbdgpu::createSharedBuffer(const bool useSharing,
                                                                       const size_t sizeOfElement,

@@ -70,5 +70,8 @@ namespace pbdgpu
             const unsigned int fragmentShader);
 
     cl_kernel createKernel(string kernelSource,string buildOptions, string kernelName, const cl_context context, const cl_device_id device);
+
+    void insertLineNumbers(string &sourceString);
+
 }
 #endif
