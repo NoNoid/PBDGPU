@@ -29,8 +29,6 @@ namespace pbdgpu
 
         virtual bool needsAcquisition() override;
 
-        virtual void getSharedBuffers(unordered_map<string, shared_ptr<GPUMemAllocator> > sharedBuffers) override;
-
         virtual void initKernel(const cl_context context, const cl_device_id device,
                                 const cl_command_queue queue) override;
 
@@ -38,9 +36,7 @@ namespace pbdgpu
 
         cl_kernel kernel;
         cl_command_queue queue;
-        shared_ptr<GPUMemAllocator> predictedPositionBuffer;
         shared_ptr<GPUMemAllocator> dataBuffer;
-        shared_ptr<GPUMemAllocator> simParamBuffer;
     };
 }
 

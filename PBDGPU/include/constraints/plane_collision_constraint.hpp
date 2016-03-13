@@ -16,13 +16,9 @@ namespace pbdgpu
         cl_kernel kernel = nullptr;
         cl_command_queue queue = nullptr;
 
-        shared_ptr<GPUMemAllocator> predictedPositionBuffer;
         shared_ptr<GPUMemAllocator> planeBuffer;
-        shared_ptr<GPUMemAllocator> simParamBuffer;
 
     public:
-
-        virtual void getSharedBuffers(unordered_map<string, shared_ptr<GPUMemAllocator> > sharedBuffers) override;
 
         PlaneCollisionConstraint(
                 shared_ptr<GPUMemAllocator> planeBuffer);

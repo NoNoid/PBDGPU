@@ -99,11 +99,3 @@ void pbdgpu::PlaneCollisionConstraint::release() {
 void pbdgpu::PlaneCollisionConstraint::acquire() {
 
 }
-
-void pbdgpu::PlaneCollisionConstraint::getSharedBuffers(
-        unordered_map<string, shared_ptr<GPUMemAllocator> > sharedBuffers) {
-    CommonConstraint::getSharedBuffers(sharedBuffers);
-
-    predictedPositionBuffer = getBufferChecked(sharedBuffers,PREDICTED_POSITIONS_BUFFER_NAME);
-    simParamBuffer = getBufferChecked(sharedBuffers,SIMULATION_PARAMETERS);
-}

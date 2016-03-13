@@ -24,12 +24,6 @@ bool pbdgpu::DistanceConstraint::needsAcquisition() {
     return false;
 }
 
-void pbdgpu::DistanceConstraint::getSharedBuffers(unordered_map<string, shared_ptr<GPUMemAllocator> > sharedBuffers) {
-    CommonConstraint::getSharedBuffers(sharedBuffers);
-    predictedPositionBuffer = getBufferChecked(sharedBuffers,PREDICTED_POSITIONS_BUFFER_NAME);
-    simParamBuffer = getBufferChecked(sharedBuffers,SIMULATION_PARAMETERS);
-}
-
 void pbdgpu::DistanceConstraint::initKernel(const cl_context context, const cl_device_id device,
                                     const cl_command_queue queue) {
 
