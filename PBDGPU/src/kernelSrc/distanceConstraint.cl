@@ -20,9 +20,12 @@ constant pbd_simulationParameters *params)
     float3 difference = p1 - p2;
     float distance = length(difference);
     float3 derivate = difference/distance;
-    float s = (distance - d.d)/(w1 + w2);
 
-    float k_2 = pow(1.f-(1.f-0.9f),1.f/params->numIterations);
+    float w = w1 + w2;
+    float s_pre  = (distance - d.d)/w;
+    float s = w < 1e-10f ? 0.f : s_pre;
+
+    float k_2 = pow(1.f-(1.f-0.5f),1.f/params->numIterations);
     float3 dp1 = - (k_2) * s * w1 * derivate;
     float3 dp2 = (k_2) * s * w2 * derivate;
 
