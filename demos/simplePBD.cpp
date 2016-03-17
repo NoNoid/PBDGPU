@@ -30,12 +30,13 @@
 #include <kernelInclude/distanceConstraintData.h>
 #include <constraints/distance_constraint.hpp>
 
+#include <util/scene_building_helpers.hpp>
+
 using glm::vec3;
 using glm::mat4;
 
 static struct simData
 {
-    const size_t particles_size = 200;
     std::shared_ptr<pbdgpu::GLBufferAllocator> particles;
     std::shared_ptr<pbdgpu::CLBufferAllocator> externalForces;
     std::shared_ptr<pbdgpu::CLBufferAllocator> predictedPositions;
@@ -222,6 +223,8 @@ void display(void) {
 
     simData.particles->releaseFromCL(0, nullptr, nullptr);
 
+    //printf("-----------------------------------------------------------\n");
+
     draw();
 
 }
@@ -245,7 +248,7 @@ void draw() {
     // draw particles
     glUseProgram(progs.particleShaderProgram);
     glBindVertexArray(renderData.particlesVAO);
-    glDrawArrays(GL_POINTS, 0, simData.particles_size);
+    glDrawArrays(GL_POINTS, 0, simData.particles->getSize());
 
     //glBindBuffer(GL_ARRAY_BUFFER,0);
     glUseProgram(0);
@@ -360,10 +363,13 @@ int main(int argc, char *argv[])
     oclvars.queue = clCreateCommandQueue(oclvars.GLCLContext, oclvars.currentOGLDevice, 0, &cl_err);
     assert(cl_err == 0 && "Error while creating commandqueue");
 
-    // init buffers
+
 
     // init particle buffer
-    vector<pbd_particle> pos(simData.particles_size);
+    vector<pbd_particle> pos;
+    vector<pbd_distanceConstraintData> distanceConstraintData;
+    /*
+    pos.resize(simData.particles_size);
     for(size_t i = 0; i < simData.particles_size; ++i)
     {
         pos[i].x.x = float(i)-100.0f;
@@ -374,10 +380,34 @@ int main(int argc, char *argv[])
         pos[i].v.z = 0.0f;
         pos[i].invmass = 1.0f;
         pos[i].phase = 1;
-    }
+    }*/
 
-    simData.particles = pbdgpu::createSharedBuffer(useSharing,sizeof(pbd_particle), simData.particles_size,oclvars.GLCLContext,oclvars.queue);
-    simData.particles->write(simData.particles_size, &pos[0]);
+    // init buffers
+    glm::vec3 p1;
+    p1.x = -50.f;
+    p1.y = 20.f;
+    glm::vec3 p2;
+    p2.x = 50.f;
+    p2.y = 20.f;
+    glm::vec3 dp;
+    dp.z = 30.f;
+    unsigned int hn = 4;
+    unsigned int vn = hn;
+    pbdgpu::buildClothSheet(pos, distanceConstraintData, p1, p2, dp, hn, vn, 1.f, 0, true);
+
+
+/*    for(int i = 0; i < pos.size(); ++i)
+    {
+        printf("(%f\t,%f\t,%f)\n",pos[i].x.x,pos[i].x.y,pos[i].x.z);
+    }*/
+
+    simData.particles = pbdgpu::createSharedBuffer(useSharing,sizeof(pbd_particle), pos.size(),oclvars.GLCLContext,oclvars.queue);
+    simData.particles->write(simData.particles->getSize(), &pos[0]);
+
+    // init distance constraint data buffer
+
+    simData.distanceData = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(pbd_distanceConstraintData),distanceConstraintData.size());
+    simData.distanceData->write(distanceConstraintData.size(),&distanceConstraintData[0]);
 
     glGenVertexArrays(1,&renderData.particlesVAO);
     glBindBuffer(GL_ARRAY_BUFFER, simData.particles->getBufferID());
@@ -386,46 +416,27 @@ int main(int argc, char *argv[])
     glEnableVertexAttribArray(0);
 
     // init external forces buffer
-    vector<cl_float3> extForces(simData.particles_size);
-    for(size_t i = 0; i < simData.particles_size; ++i)
-    {
-        extForces[i].x = 0.0f;
-        extForces[i].y = 0.0f;
-        extForces[i].z = 0.0f;
-    }
+    vector<cl_float3> extForces;
+    vector<cl_float3> predPos;
+    vector<cl_float> masses;
+    vector<cl_float> scaledMasses;
 
-    simData.externalForces = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles_size);
-    simData.externalForces->write(simData.particles_size, &extForces[0]);
+    pbdgpu::deriveStandardBuffers(pos,predPos,masses,scaledMasses,extForces);
+
+    simData.externalForces = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles->getSize());
+    simData.externalForces->write(simData.particles->getSize(), &extForces[0]);
 
     // init predicted positions buffer
-    vector<cl_float3> predPos(simData.particles_size);
-    for(size_t i = 0; i < simData.particles_size; ++i)
-    {
-        predPos[i].x = 0.0f;
-        predPos[i].y = 0.0f;
-        predPos[i].z = 0.0f;
-    }
-    simData.predictedPositions = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles_size);
-    simData.predictedPositions->write(simData.particles_size, &predPos[0]);
+    simData.predictedPositions = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles->getSize());
+    simData.predictedPositions->write(simData.particles->getSize(), &predPos[0]);
 
     // init masses buffer
-    vector<cl_float> masses(simData.particles_size);
-    for(size_t i = 0; i < simData.particles_size; ++i)
-    {
-        masses[i] = 1.0f;
-    }
-    simData.masses = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float), simData.particles_size);
-    simData.masses->write(simData.particles_size, &masses[0]);
+    simData.masses = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float), simData.particles->getSize());
+    simData.masses->write(simData.particles->getSize(), &masses[0]);
 
     // init scaled masses buffer
-    vector<cl_float> scaledMasses(simData.particles_size);
-    for(size_t i = 0; i < simData.particles_size; ++i)
-    {
-        scaledMasses[i] = 1.0f;
-    }
-
-    simData.scaledMasses = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(cl_float), simData.particles_size);
-    simData.scaledMasses->write(simData.particles_size, &scaledMasses[0]);
+    simData.scaledMasses = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(cl_float), simData.particles->getSize());
+    simData.scaledMasses->write(simData.particles->getSize(), &scaledMasses[0]);
 
     // init plane buffer
     // layout = n.x n.y n.z d | n = plane normal
@@ -472,25 +483,10 @@ int main(int argc, char *argv[])
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,NULL);
     glEnableVertexAttribArray(1);
 
-    // init distance constraint data
-
-    vector<pbd_distanceConstraintData> distanceConstraintData;
-
-    for(int i = 0; i < 100; i=i+2){
-        pbd_distanceConstraintData data;
-        data.d = 0.5f;
-        data.index0 = i;
-        data.index1 = i+1;
-        distanceConstraintData.push_back(data);
-    }
-
-    simData.distanceData = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(pbd_distanceConstraintData),distanceConstraintData.size());
-    simData.distanceData->write(distanceConstraintData.size(),&distanceConstraintData[0]);
-
 
     // init constraints
 
-    simData.SData = std::make_shared<pbdgpu::SimulationData>(simData.particles_size,oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue,1);
+    simData.SData = std::make_shared<pbdgpu::SimulationData>(pos.size(),oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue,1);
 
     simData.SData->addSharedBuffer(simData.particles,pbdgpu::PARTICLE_BUFFER_NAME);
     simData.SData->addSharedBuffer(simData.predictedPositions,pbdgpu::PREDICTED_POSITIONS_BUFFER_NAME);
@@ -500,6 +496,8 @@ int main(int argc, char *argv[])
     simData.SData->initStandardKernels();
 
     simData.SData->buildConstraint<pbdgpu::PlaneCollisionConstraint>(simData.planes);
+    simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
+
     //simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
 
     // start app

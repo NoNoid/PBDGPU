@@ -29,6 +29,9 @@ add_library(pbdgpu STATIC
         include/simulation_data.hpp
         src/simulation_data.cpp
 
+        include/util/scene_building_helpers.hpp
+        src/util/scene_building_helpers.cpp
+
         include/constraint.hpp
         src/constraint.cpp
         include/constraints/common_constraint.hpp
