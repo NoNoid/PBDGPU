@@ -35,7 +35,9 @@ void pbdgpu::SimulationData::update()
         fprintf(stderr,"Error on Prediction Kernel Execution:%d \n",cl_err);
     }
 
-    projectConstraints();
+    for(int i = 0; i < numIterations; ++i) {
+        projectConstraints();
+    }
 
     cl_err = clEnqueueNDRangeKernel(
             kernel_queue,
@@ -175,7 +177,7 @@ void pbdgpu::SimulationData::initSimParamMemory()
 
     pbd_simulationParameters d;
     d.gravity = gravityVector;
-    d.numIterations = 1;
+    d.numIterations = numIterations;
     d.timeStep = timeStep;
 
     simParamBuffer->write(1,&d);

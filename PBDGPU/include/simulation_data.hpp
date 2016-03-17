@@ -29,15 +29,17 @@ namespace pbdgpu
                 size_t numParticles,
                 cl_context context,
                 cl_device_id device,
-                cl_command_queue kernel_queue
+                cl_command_queue kernel_queue,
+                cl_uint solverIterations
         ) : numParticles(numParticles),
             context(context),
             device(device),
             kernel_queue(kernel_queue),
-            timeStep(1.f/30.f)
+            timeStep(1.f/30.f),
+            numIterations(solverIterations)
         {
             gravityVector.x = 0.f;
-            gravityVector.y = -1.f;
+            gravityVector.y = -9.81f;
             gravityVector.z = 0.f;
             gravityVector.w = 0.f;
 
@@ -64,9 +66,9 @@ namespace pbdgpu
 
     protected:
         size_t numParticles = 0;
-        size_t numContraints = 0;
         cl_float3 gravityVector;
         cl_float timeStep;
+        cl_uint numIterations;
 
         unordered_map<string,shared_ptr<GPUMemAllocator> > sharedBuffers;
         vector<shared_ptr<Constraint> > Constraints;
@@ -85,6 +87,8 @@ namespace pbdgpu
         void initUpdateKernel();
 
         void initSimParamMemory();
+
+
     };
 }
 
