@@ -5,7 +5,7 @@ add_subdirectory(external)
 include_directories(include external/clew/include external/glew/include)
 
 set(KERNEL_HEADERS include/kernelInclude/particle.h include/kernelInclude/distanceConstraintData.h include/kernelInclude/simulation_parameters.h)
-set(KERNEL_SOURCES src/kernelSrc/prediction.cl src/kernelSrc/update.cl src/kernelSrc/planeCollision.cl src/kernelSrc/distanceConstraint.cl)
+set(KERNEL_SOURCES src/kernelSrc/prediction.cl src/kernelSrc/update.cl src/kernelSrc/planeCollision.cl src/kernelSrc/distanceConstraint.cl src/kernelSrc/float_atomic_add.cl)
 
 add_library(pbdgpu STATIC
         ${KERNEL_HEADERS}

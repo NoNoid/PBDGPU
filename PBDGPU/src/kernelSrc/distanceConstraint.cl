@@ -29,6 +29,7 @@ constant pbd_simulationParameters *params)
     float3 dp1 = - (k_2) * s * w1 * derivate;
     float3 dp2 = (k_2) * s * w2 * derivate;
 
-    pred_pos[d.index0] += dp1;
-    pred_pos[d.index1] += dp2;
+
+    float3_atomic_add(pred_pos+d.index0,dp1);
+    float3_atomic_add(pred_pos+d.index1,dp2);
 }
