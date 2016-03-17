@@ -498,7 +498,7 @@ int main(int argc, char *argv[])
     simData.SData->buildConstraint<pbdgpu::PlaneCollisionConstraint>(simData.planes);
     simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
 
-    //simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
+    cl_kernel k = pbdgpu::buildBendingConstraintKernel(oclvars.GLCLContext,oclvars.currentOGLDevice);
 
     // start app
 

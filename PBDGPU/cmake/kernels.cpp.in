@@ -33,9 +33,19 @@ R"END(
 @DISTANCE_CONSTRAINT_DATA_HEADER@
 )END");
 
+static const string bendingConstraintDataHeader(
+R"END(
+@BENDING_CONSTRAINT_DATA_HEADER@
+)END");
+
 static const string distanceConstraintKernelSource(
 R"END(
 @DISTANCE_CONSTRAINT_KERNEL_SOURCE@
+)END");
+
+static const string bendingConstraintKernelSource(
+R"END(
+@BENDING_CONSTRAINT_KERNEL_SOURCE@
 )END");
 
 static const string atomicFloatFunctions(
@@ -64,4 +74,9 @@ cl_kernel pbdgpu::buildPlaneCollisionKernel(cl_context context,cl_device_id devi
 cl_kernel pbdgpu::buildDistanceConstraintKernel(cl_context context, cl_device_id device)
 {
     return pbdgpu::createKernel(particleHeader+simulationParametersHeader+distanceConstraintDataHeader+atomicFloatFunctions+distanceConstraintKernelSource,standardCompilerOptions,"distanceConstraint",context,device);
+}
+
+cl_kernel pbdgpu::buildBendingConstraintKernel(cl_context context, cl_device_id device)
+{
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+bendingConstraintDataHeader+bendingConstraintKernelSource,standardCompilerOptions,"bendingConstraint",context,device);
 }
