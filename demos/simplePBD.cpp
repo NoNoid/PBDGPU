@@ -216,10 +216,7 @@ void display(void) {
 
     simData.particles->acquireForCL(0,nullptr, nullptr);
 
-    for (unsigned int i = 0; i < 1; ++i)
-    {
-        simData.SData->update();
-    }
+    simData.SData->update();
 
     simData.particles->releaseFromCL(0, nullptr, nullptr);
 

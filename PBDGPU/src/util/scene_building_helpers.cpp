@@ -90,9 +90,9 @@ void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_dis
     }
 }
 
-void ::pbdgpu::deriveStandardBuffers(const vector<pbd_particle> &particles, vector<cl_float3> predPosData,
-                                     vector<cl_float> masses, vector<cl_float> scaledMasses,
-                                     vector<cl_float3> extForces) {
+void ::pbdgpu::deriveStandardBuffers(const vector<pbd_particle> &particles, vector<cl_float3> &predPosData,
+                                     vector<cl_float> &masses, vector<cl_float> &scaledMasses,
+                                     vector<cl_float3> &extForces) {
     const size_t numParticles = particles.size();
 
     predPosData.resize(numParticles);
