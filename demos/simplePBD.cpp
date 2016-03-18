@@ -388,7 +388,7 @@ int main(int argc, char *argv[])
     p2.y = 20.f;
     glm::vec3 dp;
     dp.z = 30.f;
-    unsigned int hn = 4;
+    unsigned int hn = 30;
     unsigned int vn = hn;
     pbdgpu::buildClothSheet(pos, distanceConstraintData, p1, p2, dp, hn, vn, 1.f, 0, true);
 
@@ -483,7 +483,8 @@ int main(int argc, char *argv[])
 
     // init constraints
 
-    simData.SData = std::make_shared<pbdgpu::SimulationData>(pos.size(),oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue,1);
+	unsigned int numSolverIterations = 10;
+    simData.SData = std::make_shared<pbdgpu::SimulationData>(pos.size(),oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue,numSolverIterations);
 
     simData.SData->addSharedBuffer(simData.particles,pbdgpu::PARTICLE_BUFFER_NAME);
     simData.SData->addSharedBuffer(simData.predictedPositions,pbdgpu::PREDICTED_POSITIONS_BUFFER_NAME);
