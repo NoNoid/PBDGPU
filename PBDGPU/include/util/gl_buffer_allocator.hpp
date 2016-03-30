@@ -18,13 +18,13 @@ namespace pbdgpu
          * @param sizeOfElement Size of one Element in bytes.
          * @param size Number of Elements in the buffer.
          */
-        GLBufferAllocator(const size_t sizeOfElement = 0, const size_t size = 0) :
+        GLBufferAllocator(const size_t sizeOfElement, const size_t size, const cl_context context = nullptr, const cl_command_queue queue = nullptr) :
 			bufferID(0),
 			bufferTarget(GL_ARRAY_BUFFER),
 			bufferTargetBinding(GL_ARRAY_BUFFER_BINDING),
             bufferUsage(GL_DYNAMIC_DRAW),
             clSharingMem(nullptr)
-        {allocate(sizeOfElement,size);}
+        {allocate(sizeOfElement,size); initCLSharing(context,queue);}
 
         virtual ~GLBufferAllocator();
 
@@ -38,7 +38,7 @@ namespace pbdgpu
          * @brief Inits sharing with OpenCL for the buffer.
          * @param context An OpenCL buffer with CLGL-interop activated.
          */
-		void initCLSharing(cl_context &context, cl_command_queue queue);
+		virtual void initCLSharing(cl_context context, cl_command_queue queue);
 
         /** @fn inline const cl_mem &getCLMem()
          * @brief Get the OpenCL memory object for the buffer.
@@ -70,7 +70,10 @@ namespace pbdgpu
 		GLBufferAllocator (const GLBufferAllocator &obj) = delete;
 		GLBufferAllocator & operator= (const GLBufferAllocator &obj) = delete;
 
-	private:
+	protected:
+
+		GLBufferAllocator() {}
+
 		GLuint bufferID;
 		GLenum bufferTarget;
 		GLenum bufferTargetBinding;

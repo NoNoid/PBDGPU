@@ -25,6 +25,21 @@ vector<cl_context_properties> pbdgpu::getOGLInteropInfo(cl_device_id &out_device
 
 	for (unsigned int i = 0; i < num_platforms; ++i)
 	{
+        size_t numChars;
+        clGetPlatformInfo(platforms[i],CL_PLATFORM_EXTENSIONS,0, nullptr,&numChars);
+
+        char* extensions = new char[numChars];
+
+        clGetPlatformInfo(platforms[i],CL_PLATFORM_EXTENSIONS,numChars,extensions, nullptr);
+
+        string extensionsString(extensions);
+
+        if(extensionsString.find("cl_khr_gl_sharing") == std::string::npos)
+        {
+            continue;
+        }
+
+        clGetGLContextInfoKHR = nullptr;
 		// get the function pointer for 'clGetGLContextInfoKHR' from the current platform
 		clGetGLContextInfoKHR = reinterpret_cast<clGetGLContextInfoKHR_fn>(clGetExtensionFunctionAddressForPlatform(platforms[i], "clGetGLContextInfoKHR"));
 		if (!clGetGLContextInfoKHR)
@@ -62,7 +77,7 @@ vector<cl_context_properties> pbdgpu::getOGLInteropInfo(cl_device_id &out_device
         return properties;
 	}
 
-	fprintf(stderr,"Could not find a OpenCL platform with active OpenGL interop device.\nPlease Install the required OpenCL SDK's for your GPU or activate your preffered GPU (Dual-GPU Laptop)\n.");
+	fprintf(stderr,"Could not find a OpenCL platform with active OpenGL interop device.\nPlease Install the required OpenCL SDK's for your GPU or activate your preffered GPU (Dual-GPU Laptop).\n");
 	
     return vector<cl_context_properties>();
 }
@@ -95,7 +110,7 @@ unsigned int pbdgpu::createShader(const string shaderSource, const unsigned int 
         vector<char> errorLog(maxLength);
         glGetShaderInfoLog(shaderID, maxLength, &maxLength, &errorLog[0]);
 
-        printf("%s",&errorLog[0]);
+        printf("-- Shader Error Log ---\n%s-----------------------\n",&errorLog[0]);
 
         glDeleteShader(shaderID);
         return 0;
@@ -182,7 +197,11 @@ cl_kernel pbdgpu::createKernel(string kernelSource,string buildOptions, string k
         clGetProgramBuildInfo(kernelProgram, device, CL_PROGRAM_BUILD_LOG, len, &BLog[0], NULL);
         clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,retSourceSize,&retSource[0],NULL);
 
-        fprintf(stderr,"In Kernel Source ... \n\n%s\n\n ... occured the following Errors:\n\n%s", &retSource[0],&BLog[0]);
+        string test(&retSource[0],retSourceSize);
+        insertLineNumbers(test);
+
+
+        fprintf(stderr,"In Kernel Source ... \n\n%s\n\n ... occured the following Errors:\n\n%s", test.c_str(),&BLog[0]);
 
         return nullptr;
     }
@@ -198,9 +217,49 @@ cl_kernel pbdgpu::createKernel(string kernelSource,string buildOptions, string k
         vector<char> retSource(retSourceSize);
         clGetProgramInfo(kernelProgram,CL_PROGRAM_SOURCE,retSourceSize,&retSource[0],NULL);
 
-        fprintf(stderr,"Error: %d while creating kernel: '%s'.\n\nFrom Source:\n%s",err,kernelName.c_str(),&retSource[0]);
+        string test(&retSource[0],retSourceSize);
+        insertLineNumbers(test);
+
+        fprintf(stderr,"Error: %d while creating kernel: '%s'.\n\nFrom Source:\n%s",err,kernelName.c_str(),test.c_str());
 
         return nullptr;
     }
     return kernel;
+}
+
+void pbdgpu::insertLineNumbers(string &sourceString) {
+    string lineEnd("\n");
+
+
+    int i = 0;
+    size_t pos = sourceString.find(lineEnd, 0);
+    const int offset = 2;
+    while(pos != std::basic_string<char>::npos) {
+            pos = sourceString.find(lineEnd, pos + 1);
+            ++i;
+            sourceString.insert(pos + 1, std::to_string(i + offset) + ":  ");
+        }
+}
+
+
+std::shared_ptr<pbdgpu::GLBufferAllocator> pbdgpu::createSharedBuffer(const bool useSharing,
+                                                                      const size_t sizeOfElement,
+                                                                      const size_t size,
+                                                                      const cl_context context,
+                                                                      const cl_command_queue queue) {
+
+    if(useSharing)
+    {
+        return std::make_shared<GLBufferAllocator>(
+                sizeOfElement,
+                size,
+                context,
+                queue);
+    }else{
+        return std::make_shared<GLCopyBufferAllocator>(
+                sizeOfElement,
+                size,
+                context,
+                queue);
+    }
 }

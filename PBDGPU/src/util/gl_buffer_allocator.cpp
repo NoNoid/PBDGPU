@@ -1,8 +1,9 @@
 #include <util/gl_buffer_allocator.hpp>
+#include <cassert>
 
 namespace pbdgpu
 {
-	void GLBufferAllocator::initCLSharing(cl_context &context,cl_command_queue comqueue)
+	void GLBufferAllocator::initCLSharing(cl_context context,cl_command_queue comqueue)
 	{
 		sharingContext = context;
 		queue = comqueue;
@@ -34,7 +35,7 @@ namespace pbdgpu
 	{
         GPUMemAllocator::allocate(sizeOfElement,length);
 
-        if(getSizeinBytes() <= 0) return;
+        assert(getSizeinBytes() > 0 && "Invalid BufferSize");
 
 		if (!glIsBuffer(bufferID))
 		{
@@ -55,10 +56,8 @@ namespace pbdgpu
 
     void GLBufferAllocator::write(size_t numElems, const void *data)
 	{
-		if (numElems > size)
-		{
-            return;
-		}
+		assert(numElems <= size);
+
 		GLint previousBuffer;
 		glGetIntegerv(bufferTargetBinding, &previousBuffer);
 		glBindBuffer(bufferTarget, bufferID);

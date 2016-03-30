@@ -4,19 +4,27 @@ add_subdirectory(external)
 
 include_directories(include external/clew/include external/glew/include)
 
+set(KERNEL_HEADERS include/kernelInclude/particle.h include/kernelInclude/distanceConstraintData.h include/kernelInclude/simulation_parameters.h include/kernelInclude/bending_constraint_data.h)
+set(KERNEL_SOURCES src/kernelSrc/prediction.cl src/kernelSrc/update.cl src/kernelSrc/planeCollision.cl src/kernelSrc/distanceConstraint.cl src/kernelSrc/float_atomic_add.cl src/kernelSrc/bending_constraint.cl)
+
 add_library(pbdgpu STATIC
-	include/util/gpu_mem_allocator.hpp
+        ${KERNEL_HEADERS}
+        ${KERNEL_SOURCES}
+        include/util/gpu_mem_allocator.hpp
         src/util/gpu_mem_allocator.cpp
-	include/util/gl_buffer_allocator.hpp
-	src/util/gl_buffer_allocator.cpp
+        include/util/gl_buffer_allocator.hpp
+        src/util/gl_buffer_allocator.cpp
         include/util/cl_buffer_allocator.hpp
         src/util/cl_buffer_allocator.cpp
+        include/util/gl_copy_buffer_allocator.hpp
+        src/util/gl_copy_buffer_allocator.cpp
 
         include/kernels.hpp
         src/kernels.cpp
         cmake/kernels.cpp.in
-        include/kernelInclude/particle.h
 
+        include/util/functions.hpp
+        src/util/functions.cpp
         src/kernelSrc/prediction.cl
 	
 	include/util/functions.hpp
@@ -32,8 +40,22 @@ add_library(pbdgpu STATIC
 
 	)
 
-file(GLOB KERNEL_HEADERS include/kernelInclude/*.h)
-file(GLOB KERNEL_SOURCES src/kernelSrc/*.cl)
+        include/simulation_data.hpp
+        src/simulation_data.cpp
+
+        include/util/scene_building_helpers.hpp
+        src/util/scene_building_helpers.cpp
+
+        include/constraint.hpp
+        src/constraint.cpp
+        include/constraints/common_constraint.hpp
+        src/constraints/common_constraint.cpp
+        include/constraints/plane_collision_constraint.hpp
+        src/constraints/plane_collision_constraint.cpp
+        include/constraints/distance_constraint.hpp
+        src/constraints/distance_constraint.cpp
+        include/constraints/bending_constraint.hpp
+        src/constraints/bending_constraint.cpp)
 
 add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/kernels.cpp
