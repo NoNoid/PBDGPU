@@ -12,6 +12,10 @@ add_executable(bufferTest testBuffers.cpp)
 target_link_libraries(bufferTest ${GLUT_LIBRARIES} glew clew pbdgpu)
 add_test(bufferTest bufferTest)
 
+add_executable(testSort testSort.cpp)
+target_link_libraries(testSort ${GLUT_LIBRARIES} glew clew pbdgpu)
+add_test(testSort testSort)
+
 if(VALGRIND)
     add_valgrind_test(valgrind_interopTest testOpenGLCL)
     add_valgrind_test(valgrind_bufferTest bufferTest)

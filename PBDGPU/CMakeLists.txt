@@ -21,6 +21,15 @@ add_library(pbdgpu STATIC
 	
 	include/util/functions.hpp
 	src/util/functions.cpp
+
+	include/sort/bitonicSortKernels.h
+	include/sort/cli.h
+		src/sort/cli.cpp
+	include/sort/stl.h
+		src/sort/stl.cpp
+
+		src/sort/bitonicsort.cpp
+
 	)
 
 file(GLOB KERNEL_HEADERS include/kernelInclude/*.h)
