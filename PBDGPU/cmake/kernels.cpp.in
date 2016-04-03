@@ -83,7 +83,7 @@ cl_kernel pbdgpu::buildDistanceConstraintKernel(cl_context context, cl_device_id
 
 cl_kernel pbdgpu::buildBendingConstraintKernel(cl_context context, cl_device_id device)
 {
-    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+bendingConstraintDataHeader+bendingConstraintKernelSource,standardCompilerOptions,"bendingConstraint",context,device);
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+bendingConstraintDataHeader+atomicFloatFunctions+bendingConstraintKernelSource,standardCompilerOptions,"bendingConstraint",context,device);
 }
 
 cl_kernel pbdgpu::buildPostSolveUpdateKernel(cl_context context, cl_device_id device)

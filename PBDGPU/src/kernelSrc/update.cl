@@ -7,7 +7,13 @@ kernel void update(
 
     float3 position = p[i].x;
     float3 predictedPosition = pred_x[i];
-    float3 updatedVelocity = 1/params->timeStep * (predictedPosition-position);
+    float3 finalDelta = predictedPosition-position;
+
+    //printf("finalDelta = %2.2v3hlf\n",finalDelta);
+
+    float3 updatedVelocity = (1/params->timeStep) * .95f * (finalDelta);
+
+    printf("updatedVelocity = %2.2v3hlf\n",updatedVelocity);
 
     p[i].v = updatedVelocity;
     p[i].x = predictedPosition;

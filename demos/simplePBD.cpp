@@ -31,6 +31,7 @@
 #include <constraints/distance_constraint.hpp>
 
 #include <util/scene_building_helpers.hpp>
+#include <constraints/bending_constraint.hpp>
 
 using glm::vec3;
 using glm::mat4;
@@ -45,10 +46,12 @@ static struct simData
     std::shared_ptr<pbdgpu::CLBufferAllocator> planes;
     std::shared_ptr<pbdgpu::CLBufferAllocator> distanceData;
     std::shared_ptr<pbdgpu::CLBufferAllocator> positionCorrections;
+    std::shared_ptr<pbdgpu::CLBufferAllocator> bendingDataBuffer;
 
     std::shared_ptr<pbdgpu::SimulationData> SData;
 
     cl_uint numPlanes = 1;
+
 
 } simData;
 
@@ -221,7 +224,7 @@ void display(void) {
 
     simData.particles->releaseFromCL(0, nullptr, nullptr);
 
-    //printf("-----------------------------------------------------------\n");
+    printf("-----------------------------------------------------------\n");
 
     draw();
 
@@ -268,6 +271,7 @@ void atClose()
     simData.planes->free();
     simData.distanceData->free();
     simData.positionCorrections->free();
+    simData.bendingDataBuffer->free();
 
     simData.SData.reset();
 }
@@ -367,6 +371,7 @@ int main(int argc, char *argv[])
     // init particle buffer
     vector<pbd_particle> pos;
     vector<pbd_distanceConstraintData> distanceConstraintData;
+    vector<pbd_bendingConstraintData> bendingConstraintData;
     /*
     pos.resize(simData.particles_size);
     for(size_t i = 0; i < simData.particles_size; ++i)
@@ -390,9 +395,10 @@ int main(int argc, char *argv[])
     p2.y = 20.f;
     glm::vec3 dp;
     dp.z = 30.f;
-    unsigned int hn = 30;
+    unsigned int hn = 10;
     unsigned int vn = hn;
-    pbdgpu::buildClothSheet(pos, distanceConstraintData, p1, p2, dp, hn, vn, 1.f, 0, true);
+    pbdgpu::buildClothSheet(pos, distanceConstraintData, bendingConstraintData, p1, p2, dp, hn,
+                            vn, 1.f, 0, true, 0.1f);
 
 
 /*    for(int i = 0; i < pos.size(); ++i)
@@ -407,6 +413,10 @@ int main(int argc, char *argv[])
 
     simData.distanceData = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(pbd_distanceConstraintData),distanceConstraintData.size());
     simData.distanceData->write(distanceConstraintData.size(),&distanceConstraintData[0]);
+
+    // init bending Constraint data buffer
+    simData.bendingDataBuffer = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(pbd_bendingConstraintData), bendingConstraintData.size());
+    simData.bendingDataBuffer->write(bendingConstraintData.size(),&bendingConstraintData[0]);
 
     glGenVertexArrays(1,&renderData.particlesVAO);
     glBindBuffer(GL_ARRAY_BUFFER, simData.particles->getBufferID());
@@ -505,8 +515,7 @@ int main(int argc, char *argv[])
 
     simData.SData->buildConstraint<pbdgpu::PlaneCollisionConstraint>(simData.planes);
     simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
-
-    cl_kernel k = pbdgpu::buildBendingConstraintKernel(oclvars.GLCLContext,oclvars.currentOGLDevice);
+    simData.SData->buildConstraint<pbdgpu::BendingConstraint>(simData.bendingDataBuffer);
 
     // start app
 

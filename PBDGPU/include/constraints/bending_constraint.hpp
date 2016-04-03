@@ -5,6 +5,7 @@
 #ifndef PBDGPU_BENDING_CONSTRAINT_HPP
 #define PBDGPU_BENDING_CONSTRAINT_HPP
 
+#include <kernelInclude/bending_constraint_data.h>
 #include "common_constraint.hpp"
 
 namespace pbdgpu
@@ -13,6 +14,11 @@ namespace pbdgpu
     {
 
     public:
+        BendingConstraint(shared_ptr<GPUMemAllocator> data) : dataBuffer(data)
+        {
+            assert(data->getSizeOfElement() == sizeof(pbd_bendingConstraintData));
+        }
+
         virtual void initKernel(const cl_context context, const cl_device_id device, const cl_command_queue queue);
 
 

@@ -21,9 +21,19 @@ vec3 pbdgpu::bilinearInterp(const vec3 &q11, const vec3 &q21, const vec3 &q12, c
     return res;
 }
 
+vec3 getVec3(const pbd_particle &particles) {
+    vec3 other_p;
+
+    other_p.x = particles.x.x;
+    other_p.y = particles.x.y;
+    other_p.z = particles.x.z;
+    return other_p;
+}
+
 void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_distanceConstraintData> &out_distConData,
-                             const vec3 &p1, const vec3 &p2, const vec3 &dp, const unsigned int hn,
-                             const unsigned int vn, const float invmass, const int phase, const bool suspended) {
+                             vector<pbd_bendingConstraintData> &out_bendConData, const vec3 &p1, const vec3 &p2,
+                             const vec3 &dp, const unsigned int hn, const unsigned int vn, const float invmass,
+                             const int phase, const bool suspended, const float bendingStiffness) {
     const vec3 p3 = p1 + dp;
     const vec3 p4 = p2 + dp;
     const unsigned int numParticles = hn*vn;
@@ -54,11 +64,7 @@ void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_dis
         {
             pbd_distanceConstraintData data;
 
-            vec3 other_p;
-
-            other_p.x = out_particles[i - 1].x.x;
-            other_p.y = out_particles[i - 1].x.y;
-            other_p.z = out_particles[i - 1].x.z;
+            vec3 other_p = getVec3(out_particles[i-1]);
 
             data.index0 = i-1;
             data.index1 = i;
@@ -73,11 +79,7 @@ void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_dis
         {
             pbd_distanceConstraintData data;
 
-            vec3 other_p;
-
-            other_p.x = out_particles[i - hn].x.x;
-            other_p.y = out_particles[i - hn].x.y;
-            other_p.z = out_particles[i - hn].x.z;
+            vec3 other_p = getVec3(out_particles[i-hn]);
 
             data.index0 = i-hn;
             data.index1 = i;
@@ -87,10 +89,57 @@ void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_dis
 
             out_distConData.push_back(data);
         }
-    }
+
+        const float phi = 180.f* 0.0174532925f; // in radians
+
+        // Center
+        if(int(i-hn-1) >= 0 && i - 1 >= 0 && int(i-hn) >= 0 && i % hn != 0)
+        {
+            pbd_bendingConstraintData data;
+            data.index1 = i;
+            data.index2 = i-hn-1;
+            data.index3 = i-1;
+            data.index4 = i-hn;
+            data.k = bendingStiffness;
+            data.phi = phi;
+
+            out_bendConData.push_back(data);
+        }/**/
+
+
+        //Down
+        if(i-int(hn)-1 >= 0 && i - int(hn) >= 0 && i-2*int(hn)-1 >= 0 && i % hn != 0)
+        {
+            pbd_bendingConstraintData data;
+            data.index1 = i-hn-1;
+            data.index2 = i-hn;
+            data.index3 = i-2*hn-1;
+            data.index4 = i;
+            data.k = bendingStiffness;
+            data.phi = phi;
+
+            out_bendConData.push_back(data);
+        }/**/
+
+        // Right
+        if(i-1 >= 0 && i - int(hn) -1 >= 0 && i-int(hn)-2 >= 0 && i % hn != 0 && (i-1) % hn != 0) {
+            pbd_bendingConstraintData data;
+            data.index1 = i - 1;
+            data.index2 = i - hn - 1;
+            data.index3 = i - hn - 2;
+            data.index4 = i;
+            data.k = bendingStiffness;
+            data.phi = phi;
+
+            out_bendConData.push_back(data);
+        }/**/
+
+        }
 }
 
-void ::pbdgpu::deriveStandardBuffers(const vector<pbd_particle> &particles, vector<cl_float3> &predPosData,
+
+
+void pbdgpu::deriveStandardBuffers(const vector<pbd_particle> &particles, vector<cl_float3> &predPosData,
                                      vector<cl_float> &masses, vector<cl_float> &scaledMasses,
                                      vector<cl_float3> &extForces, vector<cl_float3> &positionCorrections) {
     const size_t numParticles = particles.size();
