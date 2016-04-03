@@ -47,6 +47,7 @@ static struct simData
     std::shared_ptr<pbdgpu::CLBufferAllocator> distanceData;
     std::shared_ptr<pbdgpu::CLBufferAllocator> positionCorrections;
     std::shared_ptr<pbdgpu::CLBufferAllocator> bendingDataBuffer;
+    shared_ptr<pbdgpu::CLBufferAllocator> numConstraintsBuffer;
 
     std::shared_ptr<pbdgpu::SimulationData> SData;
 
@@ -272,6 +273,7 @@ void atClose()
     simData.distanceData->free();
     simData.positionCorrections->free();
     simData.bendingDataBuffer->free();
+    simData.numConstraintsBuffer->free();
 
     simData.SData.reset();
 }
@@ -430,9 +432,10 @@ int main(int argc, char *argv[])
     vector<cl_float> masses;
     vector<cl_float> scaledMasses;
     vector<cl_float3> positionCorrections;
+    vector<cl_int> numConstraints;
 
     pbdgpu::deriveStandardBuffers(pos, predPos, masses, scaledMasses, extForces,
-                                  positionCorrections);
+                                  positionCorrections,numConstraints);
 
     simData.externalForces = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles->getSize());
     simData.externalForces->write(simData.particles->getSize(), &extForces[0]);
@@ -452,6 +455,9 @@ int main(int argc, char *argv[])
     // init scaled masses buffer
     simData.scaledMasses = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(cl_float), simData.particles->getSize());
     simData.scaledMasses->write(simData.particles->getSize(), &scaledMasses[0]);
+
+    simData.numConstraintsBuffer = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(cl_int), simData.particles->getSize());
+    simData.numConstraintsBuffer->write(simData.particles->getSize(), &numConstraints[0]);
 
     // init plane buffer
     // layout = n.x n.y n.z d | n = plane normal
@@ -501,7 +507,7 @@ int main(int argc, char *argv[])
 
     // init constraints
 
-	unsigned int numSolverIterations = 10;
+	unsigned int numSolverIterations = 1;
     simData.SData = std::make_shared<pbdgpu::SimulationData>(pos.size(),oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue,numSolverIterations);
 
     simData.SData->addSharedBuffer(simData.particles,pbdgpu::PARTICLE_BUFFER_NAME);
@@ -510,6 +516,7 @@ int main(int argc, char *argv[])
     simData.SData->addSharedBuffer(simData.masses,pbdgpu::MASSES_BUFFER_NAME);
     simData.SData->addSharedBuffer(simData.scaledMasses,pbdgpu::SCALED_MASSES_BUFFER_NAME);
     simData.SData->addSharedBuffer(simData.positionCorrections,pbdgpu::POSITION_CORRECTIONS_BUFFER_NAME);
+    simData.SData->addSharedBuffer(simData.numConstraintsBuffer,pbdgpu::NUM_CONSTRAINTS_BUFFER_NAME);
 
     simData.SData->initStandardKernels();
 

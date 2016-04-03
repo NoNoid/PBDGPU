@@ -3,6 +3,7 @@ global pbd_particle* p,
 global float3* pred_pos,
 global float3* posCorr,
 global pbd_bendingConstraintData* data,
+global int* numConstraints,
 constant pbd_simulationParameters *params)
 
 {
@@ -59,7 +60,7 @@ cross(p2,n1) = %v3hlf\n\
         float3 dp4 = k_2 *((-w4*sqrt(1-d*d)*(acos(d)-cData.phi))/(tmp))*q4;
 
 
-        printf("i = %d\n\
+/*        printf("i = %d\n\
  p1 = %2.2v3hlf\n p2 = %2.2v3hlf\n p3 = %2.2v3hlf\n p4 = %2.2v3hlf\n\
 n1 = %2.2v3hlf\nn2 = %2.2v3hlf\nd = %f\n\
  q1 = %v3hlf\n q2 = %v3hlf\n q3 = %v3hlf\n q4 = %v3hlf\n\
@@ -73,6 +74,11 @@ dp1 = %2.2v3hlf\ndp2 = %2.2v3hlf\ndp3 = %2.2v3hlf\ndp4 = %2.2v3hlf\n\n"\
         float3_atomic_add(pred_pos+cData.index2, dp2);
         float3_atomic_add(pred_pos+cData.index3, dp3);
         float3_atomic_add(pred_pos+cData.index4, dp4);
+
+        atomic_inc(numConstraints+cData.index1);
+        atomic_inc(numConstraints+cData.index2);
+        atomic_inc(numConstraints+cData.index3);
+        atomic_inc(numConstraints+cData.index4);
 
     }
 }

@@ -26,9 +26,15 @@ constant pbd_simulationParameters *params)
     float s_pre  = (distance - d.d)/w;
     float s = w < 1e-10f ? 0.f : s_pre;
 
-    float k_2 = pow(1.f-(1.f-0.5f),1.f/params->numIterations);
+    float k_2 = pow(1.f-(1.f-0.6f),1.f/params->numIterations);
     float3 dp1 = - (k_2) * s * w1 * derivate;
     float3 dp2 = (k_2) * s * w2 * derivate;
+
+
+    printf(\
+"i = %d\ndp1 = %2.2v3hlf\ndp2 = %2.2v3hlf\n\n\n",\
+i,dp1,dp2);
+    /**/
 
 
     float3_atomic_add(posCorr+d.index0,dp1);

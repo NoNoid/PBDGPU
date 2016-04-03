@@ -26,9 +26,15 @@ namespace pbdgpu
                              const vec3 &dp, const unsigned int hn, const unsigned int vn, const float invmass,
                              const int phase, const bool suspended, const float bendingStiffness);
 
-	void deriveStandardBuffers(const vector<pbd_particle> &particles, vector<cl_float3> &predPosData,
-                                   vector<cl_float> &masses, vector<cl_float> &scaledMasses,
-                                   vector<cl_float3> &extForces, vector<cl_float3> &positionCorrections);
+	void deriveStandardBuffers(
+			const vector<pbd_particle> &particles,
+			vector<cl_float3> &predPosData,
+			vector<cl_float> &masses,
+			vector<cl_float> &scaledMasses,
+			vector<cl_float3> &extForces,
+			vector<cl_float3> &positionCorrections
+			vector<cl_int> &numConstraints);
+
 }
 
 #endif //PBDGPU_SCENE_BUILDING_HELPERS_HPP
