@@ -29,7 +29,7 @@ constant pbd_simulationParameters *params)
 			float3 dX = -s*w*n;
 
 			float k_2 = pow(1.f - (1.f - 0.9f), 1.f / params->numIterations);
-			posCorr[i] = += k_2 * dX;
+			posCorr[i] += k_2 * dX;
 		}
 	}
 }
