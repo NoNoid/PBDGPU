@@ -28,7 +28,7 @@ constant pbd_simulationParameters *params)
 			float3 dX = -s*w*n;
 
 			float k_2 = pow(1.f - (1.f - 0.9f), 1.f / params->numIterations);
-			pred_x[i] = currentPos + k_2 * dX;
+			pred_x[i] += k_2 * dX;
 		}
 	}
 }
