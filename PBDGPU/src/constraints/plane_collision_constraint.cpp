@@ -32,7 +32,10 @@ void pbdgpu::PlaneCollisionConstraint::initKernel(
         assert(cl_err == CL_SUCCESS && "Error while setting kernel arguments" );
     }
 
-    cl_err = clSetKernelArg(kernel,2,sizeof(cl_mem),&planeBuffer->getCLMem());
+    assert(positionCorrectionsBuffer && "data buffer is null");
+    assert(clSetKernelArg(kernel,2,sizeof(cl_mem),&positionCorrectionsBuffer->getCLMem()) == CL_SUCCESS);
+
+    cl_err = clSetKernelArg(kernel,3,sizeof(cl_mem),&planeBuffer->getCLMem());
     if(cl_err != CL_SUCCESS)
     {
         fprintf(stderr,"cl error %d\n",cl_err);
@@ -40,7 +43,7 @@ void pbdgpu::PlaneCollisionConstraint::initKernel(
     }
 
     size_t numPlanes = planeBuffer->getSize();
-    cl_err = clSetKernelArg(kernel, 3, sizeof(cl_uint), &numPlanes);
+    cl_err = clSetKernelArg(kernel, 4, sizeof(cl_uint), &numPlanes);
     if(cl_err != CL_SUCCESS)
     {
         fprintf(stderr,"cl error %d\n",cl_err);
@@ -48,7 +51,7 @@ void pbdgpu::PlaneCollisionConstraint::initKernel(
     }
 
     assert(simParamBuffer && "data buffer is null");
-    assert(clSetKernelArg(kernel,4,sizeof(cl_mem),&simParamBuffer->getCLMem()) == CL_SUCCESS);
+    assert(clSetKernelArg(kernel,5,sizeof(cl_mem),&simParamBuffer->getCLMem()) == CL_SUCCESS);
 
 }
 

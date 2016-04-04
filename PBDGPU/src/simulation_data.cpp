@@ -53,6 +53,7 @@ void pbdgpu::SimulationData::update()
 }
 
 void pbdgpu::SimulationData::projectConstraints() const {
+
     for(shared_ptr<pbdgpu::Constraint> Constraint : this->Constraints)
     {
         Constraint->update();

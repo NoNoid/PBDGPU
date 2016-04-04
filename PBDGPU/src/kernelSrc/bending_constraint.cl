@@ -1,6 +1,7 @@
 kernel void bendingConstraint(
 global pbd_particle* p,
 global float3* pred_pos,
+global float3* posCorr,
 global pbd_bendingConstraintData* data,
 constant pbd_simulationParameters *params)
 

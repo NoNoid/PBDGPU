@@ -44,10 +44,13 @@ void pbdgpu::BendingConstraint::initKernel(const cl_context context, const cl_de
     assert(predictedPositionBuffer && "predicted positions buffer is null");
     assert(clSetKernelArg(kernel,1,sizeof(cl_mem),&predictedPositionBuffer->getCLMem()) == CL_SUCCESS);
 
+    assert(positionCorrectionsBuffer && "position corrections buffer is null");
+    assert(clSetKernelArg(kernel,2,sizeof(cl_mem),&positionCorrectionsBuffer->getCLMem()) == CL_SUCCESS);
+
     assert(dataBuffer && "data buffer is null");
-    assert(clSetKernelArg(kernel,2,sizeof(cl_mem),&dataBuffer->getCLMem()) == CL_SUCCESS);
+    assert(clSetKernelArg(kernel,3,sizeof(cl_mem),&dataBuffer->getCLMem()) == CL_SUCCESS);
 
     assert(simParamBuffer && "simParam buffer is null");
-    assert(clSetKernelArg(kernel,3,sizeof(cl_mem),&simParamBuffer->getCLMem()) == CL_SUCCESS);
+    assert(clSetKernelArg(kernel,4,sizeof(cl_mem),&simParamBuffer->getCLMem()) == CL_SUCCESS);
 
 }

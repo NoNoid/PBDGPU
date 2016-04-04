@@ -1,6 +1,7 @@
 kernel void distanceConstraint(
 global pbd_particle* p,
 global float3* pred_pos,
+global float3* posCorr,
 global pbd_distanceConstraintData* data,
 constant pbd_simulationParameters *params)
 
@@ -30,6 +31,6 @@ constant pbd_simulationParameters *params)
     float3 dp2 = (k_2) * s * w2 * derivate;
 
 
-    float3_atomic_add(pred_pos+d.index0,dp1);
-    float3_atomic_add(pred_pos+d.index1,dp2);
+    float3_atomic_add(posCorr+d.index0,dp1);
+    float3_atomic_add(posCorr+d.index1,dp2);
 }

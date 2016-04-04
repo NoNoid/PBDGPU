@@ -44,6 +44,7 @@ static struct simData
     std::shared_ptr<pbdgpu::CLBufferAllocator> scaledMasses;
     std::shared_ptr<pbdgpu::CLBufferAllocator> planes;
     std::shared_ptr<pbdgpu::CLBufferAllocator> distanceData;
+    std::shared_ptr<pbdgpu::CLBufferAllocator> positionCorrections;
 
     std::shared_ptr<pbdgpu::SimulationData> SData;
 
@@ -266,6 +267,7 @@ void atClose()
     simData.scaledMasses->free();
     simData.planes->free();
     simData.distanceData->free();
+    simData.positionCorrections->free();
 
     simData.SData.reset();
 }
@@ -417,8 +419,10 @@ int main(int argc, char *argv[])
     vector<cl_float3> predPos;
     vector<cl_float> masses;
     vector<cl_float> scaledMasses;
+    vector<cl_float3> positionCorrections;
 
-    pbdgpu::deriveStandardBuffers(pos,predPos,masses,scaledMasses,extForces);
+    pbdgpu::deriveStandardBuffers(pos, predPos, masses, scaledMasses, extForces,
+                                  positionCorrections);
 
     simData.externalForces = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles->getSize());
     simData.externalForces->write(simData.particles->getSize(), &extForces[0]);
@@ -426,6 +430,10 @@ int main(int argc, char *argv[])
     // init predicted positions buffer
     simData.predictedPositions = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles->getSize());
     simData.predictedPositions->write(simData.particles->getSize(), &predPos[0]);
+
+    // init position corrections buffer
+    simData.positionCorrections = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float3), simData.particles->getSize());
+    simData.positionCorrections->write(simData.particles->getSize(), &positionCorrections[0]);
 
     // init masses buffer
     simData.masses = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext,oclvars.queue,sizeof(cl_float), simData.particles->getSize());
@@ -491,6 +499,8 @@ int main(int argc, char *argv[])
     simData.SData->addSharedBuffer(simData.externalForces,pbdgpu::EXTERNAL_FORCES_BUFFER_NAME);
     simData.SData->addSharedBuffer(simData.masses,pbdgpu::MASSES_BUFFER_NAME);
     simData.SData->addSharedBuffer(simData.scaledMasses,pbdgpu::SCALED_MASSES_BUFFER_NAME);
+    simData.SData->addSharedBuffer(simData.positionCorrections,pbdgpu::POSITION_CORRECTIONS_BUFFER_NAME);
+
     simData.SData->initStandardKernels();
 
     simData.SData->buildConstraint<pbdgpu::PlaneCollisionConstraint>(simData.planes);
