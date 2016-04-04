@@ -2,8 +2,8 @@ kernel void bendingConstraint(
 global pbd_particle* p,
 global float3* pred_pos,
 global float3* posCorr,
-global pbd_bendingConstraintData* data,
 global int* numConstraints,
+global pbd_bendingConstraintData* data,
 constant pbd_simulationParameters *params)
 
 {
@@ -70,10 +70,10 @@ dp1 = %2.2v3hlf\ndp2 = %2.2v3hlf\ndp3 = %2.2v3hlf\ndp4 = %2.2v3hlf\n\n"\
 ,i,p1,p2,p3,p4,n1,n2,d,q1,q2,q3,q4,w1,w2,w3,w4,tmp,k_2,dp1,dp2,dp3,dp4);
 /**/
 
-        float3_atomic_add(pred_pos+cData.index1, dp1);
-        float3_atomic_add(pred_pos+cData.index2, dp2);
-        float3_atomic_add(pred_pos+cData.index3, dp3);
-        float3_atomic_add(pred_pos+cData.index4, dp4);
+        float3_atomic_add(posCorr+cData.index1, dp1);
+        float3_atomic_add(posCorr+cData.index2, dp2);
+        float3_atomic_add(posCorr+cData.index3, dp3);
+        float3_atomic_add(posCorr+cData.index4, dp4);
 
         atomic_inc(numConstraints+cData.index1);
         atomic_inc(numConstraints+cData.index2);

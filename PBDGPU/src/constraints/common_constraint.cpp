@@ -12,4 +12,5 @@ void pbdgpu::CommonConstraint::getSharedBuffers(
     predictedPositionBuffer = getBufferChecked(sharedBuffers,PREDICTED_POSITIONS_BUFFER_NAME);
     simParamBuffer = getBufferChecked(sharedBuffers,SIMULATION_PARAMETERS);
     positionCorrectionsBuffer = getBufferChecked(sharedBuffers,POSITION_CORRECTIONS_BUFFER_NAME);
+    numConstraintsBuffer = getBufferChecked(sharedBuffers,NUM_CONSTRAINTS_BUFFER_NAME);
 }

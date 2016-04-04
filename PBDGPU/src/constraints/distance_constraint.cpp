@@ -40,10 +40,13 @@ void pbdgpu::DistanceConstraint::initKernel(const cl_context context, const cl_d
     assert(positionCorrectionsBuffer && "position corrections buffer is null");
     assert(clSetKernelArg(kernel,2,sizeof(cl_mem),&positionCorrectionsBuffer->getCLMem()) == CL_SUCCESS);
 
+    assert(numConstraintsBuffer && "num constraints buffer is null");
+    assert(clSetKernelArg(kernel,3,sizeof(cl_mem),&numConstraintsBuffer->getCLMem()) == CL_SUCCESS);
+
     assert(dataBuffer && "data buffer is null");
-    assert(clSetKernelArg(kernel,3,sizeof(cl_mem),&dataBuffer->getCLMem()) == CL_SUCCESS);
+    assert(clSetKernelArg(kernel,4,sizeof(cl_mem),&dataBuffer->getCLMem()) == CL_SUCCESS);
 
     assert(simParamBuffer && "simParam buffer is null");
-    assert(clSetKernelArg(kernel,4,sizeof(cl_mem),&simParamBuffer->getCLMem()) == CL_SUCCESS);
+    assert(clSetKernelArg(kernel,5,sizeof(cl_mem),&simParamBuffer->getCLMem()) == CL_SUCCESS);
 
 }

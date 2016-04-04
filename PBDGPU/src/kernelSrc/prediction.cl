@@ -4,7 +4,6 @@ kernel void prediction(
     global float3 *pred_x,
     global float *m,
     global float *scaled_m,
-    global int* numConstraints,
     constant pbd_simulationParameters *params)
 {
     size_t i = get_global_id(0);
@@ -21,6 +20,4 @@ kernel void prediction(
 
     //if(i==0) printf("test");
     scaled_m[i] = mass * exp(-1.0f/*-k*/ * height);
-
-    numConstraints[i] = 0;
 }

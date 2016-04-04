@@ -32,7 +32,7 @@ namespace pbdgpu
 			vector<cl_float> &masses,
 			vector<cl_float> &scaledMasses,
 			vector<cl_float3> &extForces,
-			vector<cl_float3> &positionCorrections
+			vector<cl_float3> &positionCorrections,
 			vector<cl_int> &numConstraints);
 
 }

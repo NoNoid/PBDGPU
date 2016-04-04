@@ -57,13 +57,17 @@ void pbdgpu::SimulationData::projectConstraints() const {
     cl_int cl_err;
 
     cl_float3 nullVector = (cl_float3){0.f,0.f,0.f};
-
-    shared_ptr<GPUMemAllocator> tmp = getBufferChecked(sharedBuffers,POSITION_CORRECTIONS_BUFFER_NAME);
-
-    cl_err =  clEnqueueFillBuffer(this->kernel_queue, tmp->getCLMem(),
+    auto tmpBuffer = getBufferChecked(sharedBuffers,POSITION_CORRECTIONS_BUFFER_NAME);
+    cl_err =  clEnqueueFillBuffer(this->kernel_queue, tmpBuffer->getCLMem(),
                                   &nullVector, sizeof(cl_float3), 0, numParticles*sizeof(cl_float3),
                                   0, nullptr, nullptr);
+    assert(cl_err == 0 && "Error while nulling position corrections buffer");
 
+    cl_int null = 0;
+    tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::NUM_CONSTRAINTS_BUFFER_NAME);
+    cl_err =  clEnqueueFillBuffer(this->kernel_queue, tmpBuffer->getCLMem(),
+                                  &null, sizeof(cl_int), 0, numParticles*sizeof(cl_int),
+                                  0, nullptr, nullptr);
     assert(cl_err == 0 && "Error while nulling position corrections buffer");
 
     for(shared_ptr<pbdgpu::Constraint> Constraint : this->Constraints)
@@ -221,6 +225,10 @@ void pbdgpu::SimulationData::initPostSolveUpdateKernel() {
 
     tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::POSITION_CORRECTIONS_BUFFER_NAME);
     cl_err = clSetKernelArg(postSolveUpdateKernel,1,sizeof(cl_mem),&tmpBuffer->getCLMem());
+    assert(cl_err == CL_SUCCESS);
+
+    tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::NUM_CONSTRAINTS_BUFFER_NAME);
+    cl_err = clSetKernelArg(postSolveUpdateKernel,2,sizeof(cl_mem),&tmpBuffer->getCLMem());
     assert(cl_err == CL_SUCCESS);
 }
 

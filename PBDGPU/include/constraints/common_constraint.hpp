@@ -22,6 +22,7 @@ namespace pbdgpu
         shared_ptr<GPUMemAllocator> simParamBuffer;
         shared_ptr<GPUMemAllocator> predictedPositionBuffer;
         shared_ptr<GPUMemAllocator> positionCorrectionsBuffer;
+        shared_ptr<GPUMemAllocator> numConstraintsBuffer;
     };
 }
 
