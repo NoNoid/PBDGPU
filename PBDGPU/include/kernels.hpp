@@ -14,6 +14,8 @@ namespace pbdgpu {
     cl_kernel buildDistanceConstraintKernel(cl_context context, cl_device_id device);
 
     cl_kernel buildBendingConstraintKernel(cl_context context, cl_device_id device);
+
+    cl_kernel buildPostSolveUpdateKernel(cl_context context, cl_device_id device);
 }
 
 #endif

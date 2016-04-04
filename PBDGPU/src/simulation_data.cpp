@@ -54,10 +54,29 @@ void pbdgpu::SimulationData::update()
 
 void pbdgpu::SimulationData::projectConstraints() const {
 
+    cl_int cl_err;
+
+    cl_float3 nullVector = (cl_float3){0.f,0.f,0.f};
+
+    shared_ptr<GPUMemAllocator> tmp = getBufferChecked(sharedBuffers,POSITION_CORRECTIONS_BUFFER_NAME);
+
+    cl_err =  clEnqueueFillBuffer(this->kernel_queue, tmp->getCLMem(),
+                                  &nullVector, sizeof(cl_float3), 0, numParticles*sizeof(cl_float3),
+                                  0, nullptr, nullptr);
+
+    assert(cl_err == 0 && "Error while nulling position corrections buffer");
+
     for(shared_ptr<pbdgpu::Constraint> Constraint : this->Constraints)
     {
         Constraint->update();
     }
+
+    cl_err = clEnqueueNDRangeKernel(
+            kernel_queue,
+            postSolveUpdateKernel,
+            1, nullptr, &numParticles, nullptr,
+            0, nullptr, nullptr);
+    assert(cl_err == CL_SUCCESS && "Error on execution of postSolveUpdateKernel");
 }
 
 void pbdgpu::SimulationData::releaseResources() const {
@@ -84,7 +103,7 @@ void pbdgpu::SimulationData::initStandardKernels()
 {
     initPredictionKernel();
     initUpdateKernel();
-
+    initPostSolveUpdateKernel();
 }
 
 void pbdgpu::SimulationData::initUpdateKernel() {
@@ -190,3 +209,19 @@ pbdgpu::SimulationData::~SimulationData()
 {
     simParamBuffer->free();
 }
+
+void pbdgpu::SimulationData::initPostSolveUpdateKernel() {
+    postSolveUpdateKernel = pbdgpu::buildPostSolveUpdateKernel(context,device);
+
+    cl_int cl_err;
+
+    auto tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::PREDICTED_POSITIONS_BUFFER_NAME);
+    cl_err = clSetKernelArg(postSolveUpdateKernel,0,sizeof(cl_mem),&tmpBuffer->getCLMem());
+    assert(cl_err == CL_SUCCESS);
+
+    tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::POSITION_CORRECTIONS_BUFFER_NAME);
+    cl_err = clSetKernelArg(postSolveUpdateKernel,1,sizeof(cl_mem),&tmpBuffer->getCLMem());
+    assert(cl_err == CL_SUCCESS);
+}
+
+

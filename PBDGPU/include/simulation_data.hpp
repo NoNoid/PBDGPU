@@ -81,13 +81,14 @@ namespace pbdgpu
 
         cl_kernel updateKernel;
         cl_kernel predictionKernel;
+        cl_kernel postSolveUpdateKernel;
 
         void addConstraint(shared_ptr<Constraint> Constraint);
         void initPredictionKernel();
         void initUpdateKernel();
+        void initPostSolveUpdateKernel();
 
         void initSimParamMemory();
-
 
     };
 }

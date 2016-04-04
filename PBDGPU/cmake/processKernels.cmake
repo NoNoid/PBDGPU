@@ -19,5 +19,6 @@ file(READ ${DIR}/src/kernelSrc/distanceConstraint.cl DISTANCE_CONSTRAINT_KERNEL_
 file(READ ${DIR}/include/kernelInclude/simulation_parameters.h SIMULATION_PARAMETERS_HEADER)
 file(READ ${DIR}/include/kernelInclude/bending_constraint_data.h BENDING_CONSTRAINT_DATA_HEADER)
 file(READ ${DIR}/src/kernelSrc/bending_constraint.cl BENDING_CONSTRAINT_KERNEL_SOURCE)
+file(READ ${DIR}/src/kernelSrc/post_solve_update.cl POST_SOLVE_UPDATE_SOURCE)
 
 configure_file(${DIR}/cmake/kernels.cpp.in ${DIR}/src/kernels.cpp @ONLY)
