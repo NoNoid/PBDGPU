@@ -23,7 +23,7 @@ namespace pbdgpu
 
     void buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_distanceConstraintData> &out_distConData,
                              vector<pbd_bendingConstraintData> &out_bendConData, const vec3 &p1, const vec3 &p2,
-                             const vec3 &dp, const unsigned int hn, const unsigned int vn, const float invmass,
+                             const vec3 &dp, const unsigned int hn, const unsigned int vn, const float mass,
                              const int phase, const bool suspended, const float bendingStiffness);
 
 	void deriveStandardBuffers(

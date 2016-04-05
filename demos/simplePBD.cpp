@@ -11,6 +11,7 @@
 #endif
 
 #define GLM_FORCE_RADIANS
+
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -397,10 +398,15 @@ int main(int argc, char *argv[])
     p2.y = 20.f;
     glm::vec3 dp;
     dp.z = 30.f;
-    unsigned int hn = 10;
+    unsigned int hn = 20;
     unsigned int vn = hn;
+    const float mass = 0.5f;
+    const float bendingStiffness = 0.5f;
+    const int phase = 0;
+    const bool suspended = true;
+
     pbdgpu::buildClothSheet(pos, distanceConstraintData, bendingConstraintData, p1, p2, dp, hn,
-                            vn, 1.f, 0, true, 0.1f);
+                            vn, mass, phase, suspended, bendingStiffness);
 
 
 /*    for(int i = 0; i < pos.size(); ++i)
@@ -507,7 +513,7 @@ int main(int argc, char *argv[])
 
     // init constraints
 
-	unsigned int numSolverIterations = 10;
+	unsigned int numSolverIterations = 1;
     simData.SData = std::make_shared<pbdgpu::SimulationData>(pos.size(),oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue,numSolverIterations);
 
     simData.SData->addSharedBuffer(simData.particles,pbdgpu::PARTICLE_BUFFER_NAME);

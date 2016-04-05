@@ -32,11 +32,12 @@ vec3 getVec3(const pbd_particle &particles) {
 
 void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_distanceConstraintData> &out_distConData,
                              vector<pbd_bendingConstraintData> &out_bendConData, const vec3 &p1, const vec3 &p2,
-                             const vec3 &dp, const unsigned int hn, const unsigned int vn, const float invmass,
+                             const vec3 &dp, const unsigned int hn, const unsigned int vn, const float mass,
                              const int phase, const bool suspended, const float bendingStiffness) {
     const vec3 p3 = p1 + dp;
     const vec3 p4 = p2 + dp;
     const unsigned int numParticles = hn*vn;
+    const float invmass = 1.f/mass;
     //printf("numParticles = %d\n",numParticles);
 
     out_particles.resize(numParticles);
