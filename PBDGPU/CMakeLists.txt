@@ -2,7 +2,9 @@ add_definitions(-Dclew_STATIC -DCL_USE_DEPRECATED_OPENCL_1_1_APIS -DGLEW_STATIC)
 
 add_subdirectory(external)
 
-include_directories(include external/clew/include external/glew/include)
+find_package(GLM REQUIRED)
+
+include_directories(include external/clew/include external/glew/include ${GLM_INCLUDE_DIRS})
 
 set(KERNEL_HEADERS include/kernelInclude/particle.h include/kernelInclude/distanceConstraintData.h include/kernelInclude/simulation_parameters.h include/kernelInclude/bending_constraint_data.h)
 set(KERNEL_SOURCES src/kernelSrc/prediction.cl src/kernelSrc/update.cl src/kernelSrc/planeCollision.cl src/kernelSrc/distanceConstraint.cl src/kernelSrc/float_atomic_add.cl src/kernelSrc/bending_constraint.cl)
