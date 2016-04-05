@@ -38,8 +38,6 @@ add_library(pbdgpu STATIC
 
 		src/sort/bitonicsort.cpp
 
-	)
-
         include/simulation_data.hpp
         src/simulation_data.cpp
 
@@ -55,7 +53,8 @@ add_library(pbdgpu STATIC
         include/constraints/distance_constraint.hpp
         src/constraints/distance_constraint.cpp
         include/constraints/bending_constraint.hpp
-        src/constraints/bending_constraint.cpp)
+        src/constraints/bending_constraint.cpp
+        )
 
 add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/kernels.cpp
