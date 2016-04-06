@@ -52,8 +52,8 @@ void pbdgpu::SimulationData::update()
     releaseResources();
 }
 
-void pbdgpu::SimulationData::projectConstraints() const {
-
+void pbdgpu::SimulationData::nullBuffers() const
+{
     cl_int cl_err;
 
     cl_float3 nullVector = (cl_float3){0.f,0.f,0.f};
@@ -69,18 +69,27 @@ void pbdgpu::SimulationData::projectConstraints() const {
                                   &null, sizeof(cl_int), 0, numParticles*sizeof(cl_int),
                                   0, nullptr, nullptr);
     assert(cl_err == 0 && "Error while nulling position corrections buffer");
+}
 
-    for(shared_ptr<pbdgpu::Constraint> Constraint : this->Constraints)
-    {
-        Constraint->update();
-    }
-
+void pbdgpu::SimulationData::postSolveUpdate() const {
+    cl_int cl_err;
     cl_err = clEnqueueNDRangeKernel(
             kernel_queue,
             postSolveUpdateKernel,
             1, nullptr, &numParticles, nullptr,
             0, nullptr, nullptr);
     assert(cl_err == CL_SUCCESS && "Error on execution of postSolveUpdateKernel");
+}
+
+void pbdgpu::SimulationData::projectConstraints() const {
+
+    for(shared_ptr<pbdgpu::Constraint> Constraint : this->Constraints)
+    {
+        nullBuffers();
+        Constraint->update();
+        postSolveUpdate();
+    }
+
 }
 
 void pbdgpu::SimulationData::releaseResources() const {

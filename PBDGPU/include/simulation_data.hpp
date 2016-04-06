@@ -90,6 +90,9 @@ namespace pbdgpu
 
         void initSimParamMemory();
 
+        void nullBuffers() const;
+
+        void postSolveUpdate() const;
     };
 }
 
