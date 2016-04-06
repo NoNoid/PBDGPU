@@ -11,7 +11,7 @@ kernel void update(
 
     //printf("finalDelta = %2.2v3hlf\n",finalDelta);
 
-    float3 updatedVelocity = (1/params->timeStep) * .95f * finalDelta;
+    float3 updatedVelocity = (1.0f/params->timeStep)  * finalDelta;
 
     //printf("updatedVelocity = %2.2v3hlf\n",updatedVelocity);
 

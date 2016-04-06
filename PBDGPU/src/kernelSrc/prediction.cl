@@ -13,7 +13,7 @@ kernel void prediction(
   
     float3 vel = particle.v + ((externalForce + params->gravity) * particle.invmass * params->timeStep);
     p[i].v = vel;
-    pred_x[i] = particle.x + (vel * params->timeStep);
+    pred_x[i] = particle.x + (.95f * vel * params->timeStep);
 
     float mass = m[i];
     float height = pred_x[i].z;
