@@ -38,6 +38,11 @@ R"END(
 @BENDING_CONSTRAINT_DATA_HEADER@
 )END");
 
+static const string triangleBendingConstraintDataHeader(
+R"END(
+@TRIANGLE_BENDING_CONSTRAINT_DATA_HEADER@
+)END");
+
 static const string distanceConstraintKernelSource(
 R"END(
 @DISTANCE_CONSTRAINT_KERNEL_SOURCE@
@@ -46,6 +51,11 @@ R"END(
 static const string bendingConstraintKernelSource(
 R"END(
 @BENDING_CONSTRAINT_KERNEL_SOURCE@
+)END");
+
+static const string triangleBendingConstraintKernelSource(
+R"END(
+@TRIANGLE_BENDING_CONSTRAINT_KERNEL_SOURCE@
 )END");
 
 static const string atomicFloatFunctions(
@@ -89,4 +99,15 @@ cl_kernel pbdgpu::buildBendingConstraintKernel(cl_context context, cl_device_id 
 cl_kernel pbdgpu::buildPostSolveUpdateKernel(cl_context context, cl_device_id device)
 {
     return pbdgpu::createKernel(postSolveUpdateSource,standardCompilerOptions,"postSolveUpdate",context,device);
+}
+
+cl_kernel pbdgpu::buildTriangleBendingKernel(cl_context context, cl_device_id device)
+{
+    return pbdgpu::createKernel(
+            particleHeader+
+            simulationParametersHeader+
+            bendingConstraintDataHeader+
+            atomicFloatFunctions+
+            triangleBendingConstraintKernelSource,
+            standardCompilerOptions,"triangleBendingConstraint",context,device);
 }

@@ -513,7 +513,7 @@ int main(int argc, char *argv[])
 
     // init constraints
 
-	unsigned int numSolverIterations = 1;
+	unsigned int numSolverIterations = 10;
     simData.SData = std::make_shared<pbdgpu::SimulationData>(pos.size(),oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue,numSolverIterations);
 
     simData.SData->addSharedBuffer(simData.particles,pbdgpu::PARTICLE_BUFFER_NAME);

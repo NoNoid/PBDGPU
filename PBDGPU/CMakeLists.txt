@@ -4,7 +4,13 @@ add_subdirectory(external)
 
 include_directories(include external/clew/include external/glew/include)
 
-set(KERNEL_HEADERS include/kernelInclude/particle.h include/kernelInclude/distanceConstraintData.h include/kernelInclude/simulation_parameters.h include/kernelInclude/bending_constraint_data.h)
+set(KERNEL_HEADERS
+		include/kernelInclude/particle.h
+		include/kernelInclude/distanceConstraintData.h
+		include/kernelInclude/simulation_parameters.h
+		include/kernelInclude/bending_constraint_data.h
+		include/kernelInclude/triangle_bending_constraint_data.h)
+
 set(KERNEL_SOURCES
 		src/kernelSrc/prediction.cl
 		src/kernelSrc/update.cl
@@ -12,7 +18,8 @@ set(KERNEL_SOURCES
 		src/kernelSrc/distanceConstraint.cl
 		src/kernelSrc/float_atomic_add.cl
 		src/kernelSrc/bending_constraint.cl
-		src/kernelSrc/post_solve_update.cl)
+		src/kernelSrc/post_solve_update.cl
+		src/kernelSrc/triangle_bending_constraint.cl)
 
 add_library(pbdgpu STATIC
         ${KERNEL_HEADERS}
@@ -48,7 +55,7 @@ add_library(pbdgpu STATIC
         include/constraints/distance_constraint.hpp
         src/constraints/distance_constraint.cpp
         include/constraints/bending_constraint.hpp
-        src/constraints/bending_constraint.cpp)
+        src/constraints/bending_constraint.cpp include/constraints/triangle_bending_constraint.hpp src/constraints/triangle_bending_constraint.cpp)
 
 add_custom_command(
 		OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/kernels.cpp
