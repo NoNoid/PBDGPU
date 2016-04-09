@@ -12,6 +12,7 @@
 #include <kernelInclude/particle.h>
 #include <kernelInclude/distanceConstraintData.h>
 #include <kernelInclude/bending_constraint_data.h>
+#include <kernelInclude/triangle_bending_constraint_data.h>
 
 
 using glm::vec3;
@@ -21,10 +22,11 @@ namespace pbdgpu
 {
     vec3 bilinearInterp(const vec3 &q11, const vec3 &q21, const vec3 &q12, const vec3 &q22, const float x, const float y);
 
-    void buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_distanceConstraintData> &out_distConData,
-                             vector<pbd_bendingConstraintData> &out_bendConData, const vec3 &p1, const vec3 &p2,
-                             const vec3 &dp, const unsigned int hn, const unsigned int vn, const float mass,
-                             const int phase, const bool suspended, const float bendingStiffness);
+    void buildClothSheet(vector<pbd_particle> &out_particles, const vec3 &p1, const vec3 &p2, const bool suspended,
+                             const vec3 &dp, const unsigned int vn, const unsigned int hn, const float mass,
+                             const int phase, vector<pbd_distanceConstraintData> &out_distConData,
+                             vector<pbd_bendingConstraintData> &out_bendConData, const float bendingStiffness,
+                             vector<pbd_triangleBendingConstraintData> &out_triagBendConData);
 
 	void deriveStandardBuffers(
 			const vector<pbd_particle> &particles,

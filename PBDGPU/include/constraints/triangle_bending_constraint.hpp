@@ -16,7 +16,7 @@ namespace pbdgpu
     public:
         TriangleBendingConstraint(shared_ptr<GPUMemAllocator> data) : dataBuffer(data)
         {
-            assert(data->getSizeOfElement() == sizeof(pbd_trianglebBendingConstraintData));
+            assert(data->getSizeOfElement() == sizeof(pbd_triangleBendingConstraintData));
         }
 
         virtual void initKernel(const cl_context context, const cl_device_id device, const cl_command_queue queue);

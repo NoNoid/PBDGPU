@@ -106,7 +106,7 @@ cl_kernel pbdgpu::buildTriangleBendingKernel(cl_context context, cl_device_id de
     return pbdgpu::createKernel(
             particleHeader+
             simulationParametersHeader+
-            bendingConstraintDataHeader+
+            triangleBendingConstraintDataHeader+
             atomicFloatFunctions+
             triangleBendingConstraintKernelSource,
             standardCompilerOptions,"triangleBendingConstraint",context,device);

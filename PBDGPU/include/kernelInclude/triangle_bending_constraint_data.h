@@ -9,7 +9,7 @@
 #include <clew.h>
 #endif
 
-typedef struct pbd_trianglebBendingConstraintData
+typedef struct pbd_triangleBendingConstraintData
 {
     cl_uint index_b0;
     cl_uint index_b1;
@@ -17,6 +17,6 @@ typedef struct pbd_trianglebBendingConstraintData
     cl_float restLength;
     cl_float k;
     cl_float curvature;
-} pbd_trianglebBendingConstraintData;
+} pbd_triangleBendingConstraintData;
 
 #endif //PBDGPU_TRIANGLE_BENDING_CONSTRAINT_DATA_H

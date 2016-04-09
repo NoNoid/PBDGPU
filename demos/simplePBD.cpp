@@ -33,6 +33,7 @@
 
 #include <util/scene_building_helpers.hpp>
 #include <constraints/bending_constraint.hpp>
+#include <constraints/triangle_bending_constraint.hpp>
 
 using glm::vec3;
 using glm::mat4;
@@ -49,12 +50,11 @@ static struct simData
     std::shared_ptr<pbdgpu::CLBufferAllocator> positionCorrections;
     std::shared_ptr<pbdgpu::CLBufferAllocator> bendingDataBuffer;
     shared_ptr<pbdgpu::CLBufferAllocator> numConstraintsBuffer;
+    shared_ptr<pbdgpu::CLBufferAllocator> triangleBendingDataBuffer;
 
     std::shared_ptr<pbdgpu::SimulationData> SData;
 
     cl_uint numPlanes = 1;
-
-
 } simData;
 
 static struct simulationParameters
@@ -288,6 +288,7 @@ void atClose()
     simData.positionCorrections->free();
     simData.bendingDataBuffer->free();
     simData.numConstraintsBuffer->free();
+    simData.triangleBendingDataBuffer->free();
 
     simData.SData.reset();
 }
@@ -388,19 +389,7 @@ int main(int argc, char *argv[])
     vector<pbd_particle> pos;
     vector<pbd_distanceConstraintData> distanceConstraintData;
     vector<pbd_bendingConstraintData> bendingConstraintData;
-    /*
-    pos.resize(simData.particles_size);
-    for(size_t i = 0; i < simData.particles_size; ++i)
-    {
-        pos[i].x.x = float(i)-100.0f;
-        pos[i].x.y = 10.0f;
-        pos[i].x.z = 0.0f;
-        pos[i].v.x = 0.0f;
-        pos[i].v.y = 0.0f;
-        pos[i].v.z = 0.0f;
-        pos[i].invmass = 1.0f;
-        pos[i].phase = 1;
-    }*/
+    vector<pbd_triangleBendingConstraintData> triagBendingConstraintData;
 
     // init buffers
     glm::vec3 p1;
@@ -411,15 +400,15 @@ int main(int argc, char *argv[])
     p2.y = 20.f;
     glm::vec3 dp;
     dp.z = 30.f;
-    unsigned int hn = 20;
+    unsigned int hn = 4;
     unsigned int vn = hn;
     const float mass = 0.5f;
     const float bendingStiffness = 0.5f;
     const int phase = 0;
     const bool suspended = true;
 
-    pbdgpu::buildClothSheet(pos, distanceConstraintData, bendingConstraintData, p1, p2, dp, hn,
-                            vn, mass, phase, suspended, bendingStiffness);
+    pbdgpu::buildClothSheet(pos, p1, p2, suspended, dp, vn, hn, mass, phase, distanceConstraintData,
+                            bendingConstraintData, bendingStiffness, triagBendingConstraintData);
 
 
 /*    for(int i = 0; i < pos.size(); ++i)
@@ -438,6 +427,10 @@ int main(int argc, char *argv[])
     // init bending Constraint data buffer
     simData.bendingDataBuffer = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(pbd_bendingConstraintData), bendingConstraintData.size());
     simData.bendingDataBuffer->write(bendingConstraintData.size(),&bendingConstraintData[0]);
+
+    // init triangle bending Constraint data buffer
+    simData.triangleBendingDataBuffer = std::make_shared<pbdgpu::CLBufferAllocator>(oclvars.GLCLContext, oclvars.queue, sizeof(pbd_triangleBendingConstraintData), triagBendingConstraintData.size());
+    simData.triangleBendingDataBuffer->write(triagBendingConstraintData.size(),&triagBendingConstraintData[0]);
 
     glGenVertexArrays(1,&renderData.particlesVAO);
     glBindBuffer(GL_ARRAY_BUFFER, simData.particles->getBufferID());
@@ -526,7 +519,7 @@ int main(int argc, char *argv[])
 
     // init constraints
 
-	unsigned int numSolverIterations = 10;
+	unsigned int numSolverIterations = 1;
     simData.SData = std::make_shared<pbdgpu::SimulationData>(pos.size(),oclvars.GLCLContext,oclvars.currentOGLDevice,oclvars.queue,numSolverIterations);
 
     simData.SData->addSharedBuffer(simData.particles,pbdgpu::PARTICLE_BUFFER_NAME);
@@ -540,8 +533,10 @@ int main(int argc, char *argv[])
     simData.SData->initStandardKernels();
 
     simData.SData->buildConstraint<pbdgpu::PlaneCollisionConstraint>(simData.planes);
+    simData.SData->buildConstraint<pbdgpu::TriangleBendingConstraint>(simData.triangleBendingDataBuffer);
     simData.SData->buildConstraint<pbdgpu::DistanceConstraint>(simData.distanceData);
-    simData.SData->buildConstraint<pbdgpu::BendingConstraint>(simData.bendingDataBuffer);
+    //simData.SData->buildConstraint<pbdgpu::BendingConstraint>(simData.bendingDataBuffer);
+
 
     // start app
 

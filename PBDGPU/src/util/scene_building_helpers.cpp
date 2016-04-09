@@ -30,10 +30,11 @@ vec3 getVec3(const pbd_particle &particles) {
     return other_p;
 }
 
-void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_distanceConstraintData> &out_distConData,
-                             vector<pbd_bendingConstraintData> &out_bendConData, const vec3 &p1, const vec3 &p2,
-                             const vec3 &dp, const unsigned int hn, const unsigned int vn, const float mass,
-                             const int phase, const bool suspended, const float bendingStiffness) {
+void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, const vec3 &p1, const vec3 &p2, const bool suspended,
+                             const vec3 &dp, const unsigned int vn, const unsigned int hn, const float mass,
+                             const int phase, vector<pbd_distanceConstraintData> &out_distConData,
+                             vector<pbd_bendingConstraintData> &out_bendConData, const float bendingStiffness,
+                             vector<pbd_triangleBendingConstraintData> &out_triagBendConData) {
     const vec3 p3 = p1 + dp;
     const vec3 p4 = p2 + dp;
     const unsigned int numParticles = hn*vn;
@@ -60,7 +61,7 @@ void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_dis
         out_particles[i].phase = phase;
         out_particles[i].invmass = suspended && i < hn ? 0.f : invmass;
 
-
+        // Distance Constraints
         if((i-1) >= 0 && i % hn != 0 && !(suspended && i < hn))
         {
             pbd_distanceConstraintData data;
@@ -91,6 +92,7 @@ void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_dis
             out_distConData.push_back(data);
         }
 
+        // Dihedral Bending Constraint
         const float phi = 180.f* 0.0174532925f; // in radians
 
         // Center
@@ -133,6 +135,61 @@ void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, vector<pbd_dis
             data.phi = phi;
 
             out_bendConData.push_back(data);
+        }/**/
+
+        // Triangle Bending Constraint
+        const float stiffness = 0.1f;
+        const float curvature = 0.f;
+        const float restLength = 0.f;
+        // Down
+        if(i-2*int(hn) >= 0)
+        {
+            pbd_triangleBendingConstraintData data;
+            data.index_b0 = i;
+            data.index_v = i-hn;
+            data.index_b1 = i-2*hn;
+            data.k = stiffness;
+            data.curvature = curvature;
+            data.restLength = restLength;
+
+            out_triagBendConData.push_back(data);
+
+            data.index_b0 = i-2*hn;
+            data.index_v = i-hn;
+            data.index_b1 = i;
+            data.k = stiffness;
+            data.curvature = curvature;
+            data.restLength = restLength;
+
+            out_triagBendConData.push_back(data);
+        }
+
+        /*/Down Right
+        if(i-2*int(hn)+2 >= 0 && i % (hn-1) != 0 && i % (hn-2) != 0)
+        {
+            pbd_triangleBendingConstraintData data;
+            data.index_b0 = i;
+            data.index_v = i-hn+1;
+            data.index_b1 = i-2*hn+2;
+            data.k = stiffness;
+            data.curvature = curvature;
+            data.restLength = restLength;
+
+            out_triagBendConData.push_back(data);
+        }/**/
+
+        /*/ Down Left
+        if(i-2*int(hn)-2 >= 0 && i % (hn+1) != 0 && i % (hn+2) != 0)
+        {
+            pbd_triangleBendingConstraintData data;
+            data.index_b0 = i;
+            data.index_v = i-hn-1;
+            data.index_b1 = i-2*hn-2;
+            data.k = stiffness;
+            data.curvature = curvature;
+            data.restLength = restLength;
+
+            out_triagBendConData.push_back(data);
         }/**/
 
         }

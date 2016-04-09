@@ -15,13 +15,13 @@ constant pbd_simulationParameters *params)
     float3 b1 = pred_pos[cData.index_b1];;
     float3 v  = pred_pos[cData.index_v];
 
-    float 3 c = 0.33333333333f * (b0 + b1 +v);
+    float3 c = 0.33333333333f * (b0 + b1 +v);
+    float h = length(v-c);
+    float C_triangle = h -(cData.curvature+cData.restLength);
 
-    C_triangle = length(v-c)-(cData.curvature+cData.restLength);
-
-    if(C_triangle < 0.0f)
+    if(h > 1e-5f)
     {
-        float k_prime = 1.f - pow(1.f - cData.stiffness, 1.f / params-> numIterations);
+        float k_prime = 1.f - pow(1.f - cData.k, 1.f / params-> numIterations);
 
         float invMass_b0 = p[cData.index_b0].invmass;
         float invMass_b1 = p[cData.index_b1].invmass;
@@ -30,7 +30,9 @@ constant pbd_simulationParameters *params)
         // generalized inverse mass of the triangle
         float W = invMass_b0 + invMass_b1 + 2 * invMass_v;
 
-        const float3 constantTerm = (v-c)*(1.f - (cData.curvature + cData.restLength / length(v-c)));
+
+
+        const float3 constantTerm = (v-c)*(1.f - (cData.curvature + cData.restLength / h));
 
         float3 dp_b0 = ((2*invMass_b0) / W ) * k_prime * constantTerm;
         float3 dp_b1 = ((2*invMass_b1) / W ) * k_prime * constantTerm;
