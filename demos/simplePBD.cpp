@@ -133,9 +133,8 @@ static struct window
     int cx = width/2;
     int cy = height/2;
     const char* title = "SimplePBD";
+    bool runCompute = false;
 } win;
-
-void draw();
 
 void reshape(const int newWidth, const int newHeight) {
 
@@ -191,6 +190,11 @@ void keyboard(const unsigned char key, const int x, const int y) {
         vec3 d = -cam.speed * cam.getRight();
         cam.move(d);
     }
+
+    if(key == ' ')
+    {
+        win.runCompute = true;
+    }
 }
 
 void passiveMotion(int x, int y)
@@ -208,28 +212,6 @@ void motion(int x, int y)
     }
 
     passiveMotion(x,y);
-}
-
-void display(void) {
-
-    auto now = std::chrono::high_resolution_clock::now();
-    long elapsed_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(now - simParams.lastTime).count();
-    simParams.lastTime = now;
-    float elapsed_seconds = float(elapsed_microseconds) / 1000000.0f;
-    //printf("Elapsed time: %f \n",elapsed_seconds);
-
-    // Compute
-
-    simData.particles->acquireForCL(0,nullptr, nullptr);
-
-    simData.SData->update();
-
-    simData.particles->releaseFromCL(0, nullptr, nullptr);
-
-    //printf("-----------------------------------------------------------\n");
-
-    draw();
-
 }
 
 void draw() {
@@ -257,6 +239,37 @@ void draw() {
     glUseProgram(0);
 
     glutSwapBuffers();
+}
+
+void compute() {// Compute
+
+    simData.particles->acquireForCL(0,nullptr, nullptr);
+
+    simData.SData->update();
+
+    simData.particles->releaseFromCL(0, nullptr, nullptr);
+}
+
+void display(void) {
+
+    auto now = std::chrono::high_resolution_clock::now();
+    long elapsed_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(now - simParams.lastTime).count();
+    simParams.lastTime = now;
+    float elapsed_seconds = float(elapsed_microseconds) / 1000000.0f;
+    //printf("Elapsed time: %f \n",elapsed_seconds);
+
+
+
+    if(win.runCompute) {
+        compute();
+        win.runCompute = false;
+    }
+
+
+    //printf("-----------------------------------------------------------\n");
+
+    draw();
+
 }
 
 void atClose()
