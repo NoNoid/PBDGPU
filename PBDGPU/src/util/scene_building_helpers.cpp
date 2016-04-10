@@ -153,16 +153,7 @@ void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, const vec3 &p1
             data.restLength = restLength;
 
             out_triagBendConData.push_back(data);
-
-            data.index_b0 = i-2*hn;
-            data.index_v = i-hn;
-            data.index_b1 = i;
-            data.k = stiffness;
-            data.curvature = curvature;
-            data.restLength = restLength;
-
-            out_triagBendConData.push_back(data);
-        }
+        }/**/
 
         /*/Down Right
         if(i-2*int(hn)+2 >= 0 && i % (hn-1) != 0 && i % (hn-2) != 0)
