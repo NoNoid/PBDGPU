@@ -9,11 +9,11 @@ kernel void update(
     float3 predictedPosition = pred_x[i];
     float3 finalDelta = predictedPosition-position;
 
-    //printf("finalDelta = %2.2v3hlf\n",finalDelta);
+#ifdef PBDGPU_DEBUG_PRINT
+    printf("i = %3d | fD = %8.4v3hlf\n",i,finalDelta);
+#endif
 
     float3 updatedVelocity = (1.0f/params->timeStep)  * finalDelta;
-
-    //printf("updatedVelocity = %2.2v3hlf\n",updatedVelocity);
 
     p[i].v = updatedVelocity;
     p[i].x = predictedPosition;

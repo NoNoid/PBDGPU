@@ -258,18 +258,12 @@ void display(void) {
     float elapsed_seconds = float(elapsed_microseconds) / 1000000.0f;
     //printf("Elapsed time: %f \n",elapsed_seconds);
 
-
-
     if(win.runCompute) {
         compute();
         win.runCompute = false;
     }
 
-
-    //printf("-----------------------------------------------------------\n");
-
     draw();
-
 }
 
 void atClose()

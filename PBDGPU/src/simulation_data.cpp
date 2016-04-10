@@ -37,6 +37,9 @@ void pbdgpu::SimulationData::update()
 
     for(int i = 0; i < numIterations; ++i) {
         projectConstraints();
+#ifdef PBDGPU_DEBUG_PRINT
+        printf("\n######  sub_it = %d ######\n",i);
+#endif
     }
 
     cl_err = clEnqueueNDRangeKernel(
@@ -50,6 +53,11 @@ void pbdgpu::SimulationData::update()
     }
 
     releaseResources();
+
+#ifdef PBDGPU_DEBUG_PRINT
+    static int iter = 0;
+    printf("\n--- iter = %d --------------------------------------------------------\n",iter++);
+#endif
 }
 
 void pbdgpu::SimulationData::nullBuffers() const
@@ -88,6 +96,11 @@ void pbdgpu::SimulationData::projectConstraints() const {
         nullBuffers();
         Constraint->update();
         postSolveUpdate();
+
+#ifdef PBDGPU_DEBUG_PRINT
+        printf("..........................................................\n");
+#endif
+
     }
 
 }

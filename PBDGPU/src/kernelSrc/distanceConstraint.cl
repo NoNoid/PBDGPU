@@ -31,11 +31,11 @@ constant pbd_simulationParameters *params)
     float3 dp1 = - k_prime * s * w1 * derivate;
     float3 dp2 = k_prime * s * w2 * derivate;
 
-
-/*    printf(\
-"i = %d\ndp1 = %2.2v3hlf\ndp2 = %2.2v3hlf\n\n\n",\
-i,dp1,dp2);
-/**/
+#ifdef PBDGPU_DEBUG_PRINT_KERNEL
+    printf(\
+"i = %d\n%3d | dp1 = %8.4v3hlf\n%3d | dp2 = %8.4v3hlf\n\n\n",\
+i,d.index0,dp1,d.index1,dp2);
+#endif
 
 
     float3_atomic_add(posCorr+d.index0,dp1);

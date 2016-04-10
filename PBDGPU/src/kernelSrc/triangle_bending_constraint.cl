@@ -38,6 +38,12 @@ constant pbd_simulationParameters *params)
         float3 dp_b1 = ((2*invMass_b1) / W ) * k_prime * constantTerm;
         float3 dp_v = ((4*invMass_v ) / W ) * k_prime * constantTerm;
 
+#ifdef PBDGPU_DEBUG_PRINT_KERNEL
+    printf(\
+"i = %d\nh = %f\nk_prime = %f\nW = %f\nconstantTerm = %8.4v3hlf\n %3d | dp_b0 = %8.4v3hlf\n %3d | dp_b1 = %8.4v3hlf\n %3d | dp_v = %8.4v3hlf\n\n\n",\
+i,h,k_prime,W,constantTerm,cData.index_b0,dp_b0,cData.index_b1,dp_b1,cData.index_v,dp_v);
+#endif
+
         float3_atomic_add(posCorr+cData.index_b0, dp_b0);
         float3_atomic_add(posCorr+cData.index_b1, dp_b1);
         float3_atomic_add(posCorr+cData.index_v, dp_v);

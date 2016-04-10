@@ -13,7 +13,9 @@ global int* numConstraints)
     {
         float3 tmp = (overRelaxationParameter/(float)n  ) *  posCorr[i];
 
-        //printf("%d +=  (%f/%d  ) * %2.2v3hlf = %2.2v3hlf\n",i,overRelaxationParameter,numConstraints[i],posCorr[i],tmp);
+#ifdef PBDGPU_DEBUG_PRINT
+        printf("i = %3d | %8.4v3hlf |  %3d | = %8.4v3hlf\n",i,posCorr[i],numConstraints[i],tmp);
+#endif
 
         predPos[i] += tmp;
     }

@@ -68,37 +68,49 @@ R"END(
 @POST_SOLVE_UPDATE_SOURCE@
 )END");
 
-static const string standardCompilerOptions("-D cl_float4=float4 -D cl_float3=float3 -D cl_float=float -D cl_int=int -D cl_uint=uint");
+string getCompilerOptions() {
+    string result("-D cl_float4=float4 -D cl_float3=float3 -D cl_float=float -D cl_int=int -D cl_uint=uint");
+
+#ifdef PBDGPU_DEBUG_PRINT
+    result += " -D PBDGPU_DEBUG_PRINT";
+#endif
+
+#ifdef PBDGPU_DEBUG_PRINT_KERNEL
+    result += " -D PBDGPU_DEBUG_PRINT_KERNEL";
+#endif
+
+    return result;
+}
 
 cl_kernel pbdgpu::buildPredictionKernel(cl_context context,cl_device_id device)
 {
 
-    return pbdgpu::createKernel(particleHeader + simulationParametersHeader + predictionSource,standardCompilerOptions,"prediction",context,device);
+    return pbdgpu::createKernel(particleHeader + simulationParametersHeader + predictionSource,getCompilerOptions(),"prediction",context,device);
 }
 
 cl_kernel pbdgpu::buildUpdateKernel(cl_context context, cl_device_id device)
 {
-    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+updateSource,standardCompilerOptions,"update",context,device);
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+updateSource,getCompilerOptions(),"update",context,device);
 }
 
 cl_kernel pbdgpu::buildPlaneCollisionKernel(cl_context context,cl_device_id device)
 {
-    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+kernelCollSource,standardCompilerOptions,"planeCollision",context,device);
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+kernelCollSource,getCompilerOptions(),"planeCollision",context,device);
 }
 
 cl_kernel pbdgpu::buildDistanceConstraintKernel(cl_context context, cl_device_id device)
 {
-    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+distanceConstraintDataHeader+atomicFloatFunctions+distanceConstraintKernelSource,standardCompilerOptions,"distanceConstraint",context,device);
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+distanceConstraintDataHeader+atomicFloatFunctions+distanceConstraintKernelSource,getCompilerOptions(),"distanceConstraint",context,device);
 }
 
 cl_kernel pbdgpu::buildBendingConstraintKernel(cl_context context, cl_device_id device)
 {
-    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+bendingConstraintDataHeader+atomicFloatFunctions+bendingConstraintKernelSource,standardCompilerOptions,"bendingConstraint",context,device);
+    return pbdgpu::createKernel(particleHeader+simulationParametersHeader+bendingConstraintDataHeader+atomicFloatFunctions+bendingConstraintKernelSource,getCompilerOptions(),"bendingConstraint",context,device);
 }
 
 cl_kernel pbdgpu::buildPostSolveUpdateKernel(cl_context context, cl_device_id device)
 {
-    return pbdgpu::createKernel(postSolveUpdateSource,standardCompilerOptions,"postSolveUpdate",context,device);
+    return pbdgpu::createKernel(postSolveUpdateSource,getCompilerOptions(),"postSolveUpdate",context,device);
 }
 
 cl_kernel pbdgpu::buildTriangleBendingKernel(cl_context context, cl_device_id device)
@@ -109,5 +121,5 @@ cl_kernel pbdgpu::buildTriangleBendingKernel(cl_context context, cl_device_id de
             triangleBendingConstraintDataHeader+
             atomicFloatFunctions+
             triangleBendingConstraintKernelSource,
-            standardCompilerOptions,"triangleBendingConstraint",context,device);
+            getCompilerOptions(),"triangleBendingConstraint",context,device);
 }
