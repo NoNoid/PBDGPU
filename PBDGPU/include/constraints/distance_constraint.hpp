@@ -19,6 +19,7 @@ namespace pbdgpu
         DistanceConstraint(shared_ptr<GPUMemAllocator>distanceConstraintData) : dataBuffer(distanceConstraintData)
         {
             assert(dataBuffer->getSizeOfElement() == sizeof(pbd_distanceConstraintData));
+            needsStabilizationFlag = true;
         }
 
         virtual void acquire() override {}

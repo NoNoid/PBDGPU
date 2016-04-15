@@ -16,6 +16,10 @@ namespace pbdgpu
     public:
         virtual void getSharedBuffers(unordered_map<string, shared_ptr<GPUMemAllocator> > sharedBuffers) override;
 
+        virtual bool needsStabilization() override {
+            return needsStabilizationFlag;
+        }
+
     protected:
 
         shared_ptr<GPUMemAllocator> particleBuffer;
@@ -23,6 +27,7 @@ namespace pbdgpu
         shared_ptr<GPUMemAllocator> predictedPositionBuffer;
         shared_ptr<GPUMemAllocator> positionCorrectionsBuffer;
         shared_ptr<GPUMemAllocator> numConstraintsBuffer;
+        bool needsStabilizationFlag = false;
     };
 }
 

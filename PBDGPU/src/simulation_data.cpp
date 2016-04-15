@@ -18,6 +18,11 @@ void pbdgpu::SimulationData::addConstraint(shared_ptr<Constraint> Constraint)
         ConstraintsNeedingAcquisition.push_back(Constraint);
     }
 
+    if(Constraint->needsStabilization())
+    {
+        ConstraintsNeedingStabilization.push_back(Constraint);
+    }
+
     Constraint->initKernel(context,device,kernel_queue);
 }
 
@@ -34,6 +39,8 @@ void pbdgpu::SimulationData::update()
     {
         fprintf(stderr,"Error on Prediction Kernel Execution:%d \n",cl_err);
     }
+
+    stabilization();
 
     for(int i = 0; i < numIterations; ++i) {
         projectConstraints();
@@ -58,6 +65,22 @@ void pbdgpu::SimulationData::update()
     static int iter = 0;
     printf("\n--- iter = %d --------------------------------------------------------\n",iter++);
 #endif
+}
+
+void pbdgpu::SimulationData::stabilization() const {
+
+    setNumIterationsInParameterBuffer(numStabilizationIterations);
+
+    for(int i = 0; i < this->numStabilizationIterations; ++i) {
+
+        for(shared_ptr<pbdgpu::Constraint> Constraint : this->ConstraintsNeedingStabilization) {
+            nullBuffers();
+            Constraint->update();
+            postStabilizationUpdate();
+        }
+    }
+
+    setNumIterationsInParameterBuffer(numIterations);
 }
 
 void pbdgpu::SimulationData::nullBuffers() const
@@ -130,6 +153,7 @@ void pbdgpu::SimulationData::initStandardKernels()
     initPredictionKernel();
     initUpdateKernel();
     initPostSolveUpdateKernel();
+    initPostStabilizationUpdateKernel();
 }
 
 void pbdgpu::SimulationData::initUpdateKernel() {
@@ -253,5 +277,47 @@ void pbdgpu::SimulationData::initPostSolveUpdateKernel() {
     cl_err = clSetKernelArg(postSolveUpdateKernel,2,sizeof(cl_mem),&tmpBuffer->getCLMem());
     assert(cl_err == CL_SUCCESS);
 }
+
+void pbdgpu::SimulationData::postStabilizationUpdate() const {
+    cl_int cl_err;
+    cl_err = clEnqueueNDRangeKernel(
+            kernel_queue,
+            postStabilizationUpdateKernel,
+            1, nullptr, &numParticles, nullptr,
+            0, nullptr, nullptr);
+    assert(cl_err == CL_SUCCESS && "Error on execution of postStabilizationUpdateKernel");
+}
+
+void pbdgpu::SimulationData::setNumIterationsInParameterBuffer(const cl_uint numIterations) const{
+    auto tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::SIMULATION_PARAMETERS);
+    int cl_err =  clEnqueueFillBuffer(this->kernel_queue, tmpBuffer->getCLMem(),
+                                      &numIterations, sizeof(cl_uint), 0, sizeof(cl_uint),
+                                      0, nullptr, nullptr);
+    assert(cl_err == 0 && "Error while nulling position corrections buffer");
+}
+
+void pbdgpu::SimulationData::initPostStabilizationUpdateKernel() {
+    postStabilizationUpdateKernel = pbdgpu::buildPostStabilizationUpdateKernel(context,device);
+
+    cl_int cl_err;
+
+    auto tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::PREDICTED_POSITIONS_BUFFER_NAME);
+    cl_err = clSetKernelArg(postStabilizationUpdateKernel,0,sizeof(cl_mem),&tmpBuffer->getCLMem());
+    assert(cl_err == CL_SUCCESS);
+
+    tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::PARTICLE_BUFFER_NAME);
+    cl_err = clSetKernelArg(postStabilizationUpdateKernel,1,sizeof(cl_mem),&tmpBuffer->getCLMem());
+    assert(cl_err == CL_SUCCESS);
+
+    tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::POSITION_CORRECTIONS_BUFFER_NAME);
+    cl_err = clSetKernelArg(postStabilizationUpdateKernel,2,sizeof(cl_mem),&tmpBuffer->getCLMem());
+    assert(cl_err == CL_SUCCESS);
+
+    tmpBuffer = getBufferChecked(sharedBuffers,pbdgpu::NUM_CONSTRAINTS_BUFFER_NAME);
+    cl_err = clSetKernelArg(postStabilizationUpdateKernel,3,sizeof(cl_mem),&tmpBuffer->getCLMem());
+    assert(cl_err == CL_SUCCESS);
+}
+
+
 
 

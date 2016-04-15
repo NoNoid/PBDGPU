@@ -20,6 +20,7 @@ file(READ ${DIR}/include/kernelInclude/simulation_parameters.h SIMULATION_PARAME
 file(READ ${DIR}/include/kernelInclude/bending_constraint_data.h BENDING_CONSTRAINT_DATA_HEADER)
 file(READ ${DIR}/src/kernelSrc/bending_constraint.cl BENDING_CONSTRAINT_KERNEL_SOURCE)
 file(READ ${DIR}/src/kernelSrc/post_solve_update.cl POST_SOLVE_UPDATE_SOURCE)
+file(READ ${DIR}/src/kernelSrc/post_stabilization_update.cl POST_STABILIZATION_UPDATE_SOURCE)
 file(READ ${DIR}/src/kernelSrc/triangle_bending_constraint.cl TRIANGLE_BENDING_CONSTRAINT_KERNEL_SOURCE)
 file(READ ${DIR}/include/kernelInclude/triangle_bending_constraint_data.h TRIANGLE_BENDING_CONSTRAINT_DATA_HEADER)
 

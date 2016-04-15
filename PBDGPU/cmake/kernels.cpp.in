@@ -68,6 +68,11 @@ R"END(
 @POST_SOLVE_UPDATE_SOURCE@
 )END");
 
+static const string postStabilizationUpdateSource(
+R"END(
+@POST_STABILIZATION_UPDATE_SOURCE@
+)END");
+
 string getCompilerOptions() {
     string result("-D cl_float4=float4 -D cl_float3=float3 -D cl_float=float -D cl_int=int -D cl_uint=uint");
 
@@ -111,6 +116,11 @@ cl_kernel pbdgpu::buildBendingConstraintKernel(cl_context context, cl_device_id 
 cl_kernel pbdgpu::buildPostSolveUpdateKernel(cl_context context, cl_device_id device)
 {
     return pbdgpu::createKernel(postSolveUpdateSource,getCompilerOptions(),"postSolveUpdate",context,device);
+}
+
+cl_kernel pbdgpu::buildPostStabilizationUpdateKernel(cl_context context, cl_device_id device)
+{
+    return pbdgpu::createKernel(particleHeader+postStabilizationUpdateSource,getCompilerOptions(),"postStabilizationUpdate",context,device);
 }
 
 cl_kernel pbdgpu::buildTriangleBendingKernel(cl_context context, cl_device_id device)

@@ -11,8 +11,10 @@
 
 typedef struct pbd_simulationParameters
 {
-    cl_float timeStep;
+    // Please try not to change the position of numIterations as first item
+    // if the position of numIterations is changed also look into SimulationData::stabilization()
     cl_uint numIterations;
+    cl_float timeStep;
     cl_float3 gravity;
 
 } pbd_simulationParameters;

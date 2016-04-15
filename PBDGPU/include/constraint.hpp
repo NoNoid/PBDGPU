@@ -30,6 +30,7 @@ namespace pbdgpu
         virtual void getSharedBuffers(unordered_map<string, shared_ptr<GPUMemAllocator> > sharedBuffers) = 0;
         virtual void update() = 0;
         virtual bool needsAcquisition() = 0;
+        virtual bool needsStabilization() = 0;
 
         virtual void initKernel(const cl_context context, const cl_device_id device, const cl_command_queue queue) = 0;
     };

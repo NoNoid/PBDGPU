@@ -30,13 +30,15 @@ namespace pbdgpu
                 cl_context context,
                 cl_device_id device,
                 cl_command_queue kernel_queue,
-                cl_uint solverIterations
+                cl_uint solverIterations,
+                cl_uint numStabilizationIterations
         ) : numParticles(numParticles),
             context(context),
             device(device),
             kernel_queue(kernel_queue),
             timeStep(1.f/30.f),
-            numIterations(solverIterations)
+            numIterations(solverIterations),
+            numStabilizationIterations(numStabilizationIterations)
         {
             gravityVector.x = 0.f;
             gravityVector.y = -9.81f;
@@ -59,6 +61,8 @@ namespace pbdgpu
         void acquireResources() const;
         void releaseResources() const;
         void projectConstraints() const;
+        void stabilization() const;
+        void setNumIterationsInParameterBuffer(const cl_uint numIterations) const;
 
         void initStandardKernels();
 
@@ -69,10 +73,12 @@ namespace pbdgpu
         cl_float3 gravityVector;
         cl_float timeStep;
         cl_uint numIterations;
+        cl_uint numStabilizationIterations;
 
         unordered_map<string,shared_ptr<GPUMemAllocator> > sharedBuffers;
         vector<shared_ptr<Constraint> > Constraints;
         vector<shared_ptr<Constraint> > ConstraintsNeedingAcquisition;
+        vector<shared_ptr<Constraint> > ConstraintsNeedingStabilization;
         shared_ptr<CLBufferAllocator> simParamBuffer;
 
         cl_context context;
@@ -82,17 +88,23 @@ namespace pbdgpu
         cl_kernel updateKernel;
         cl_kernel predictionKernel;
         cl_kernel postSolveUpdateKernel;
+        cl_kernel postStabilizationUpdateKernel;
 
         void addConstraint(shared_ptr<Constraint> Constraint);
         void initPredictionKernel();
         void initUpdateKernel();
         void initPostSolveUpdateKernel();
+        void initPostStabilizationUpdateKernel();
 
         void initSimParamMemory();
 
         void nullBuffers() const;
 
         void postSolveUpdate() const;
+
+        void postStabilizationUpdate() const;
+
+
     };
 }
 

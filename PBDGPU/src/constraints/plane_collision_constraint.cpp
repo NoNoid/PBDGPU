@@ -86,6 +86,7 @@ bool pbdgpu::PlaneCollisionConstraint::needsAcquisition()
 pbdgpu::PlaneCollisionConstraint::PlaneCollisionConstraint(shared_ptr<GPUMemAllocator> planeBuffer)
 {
     this->planeBuffer = planeBuffer;
+    this->needsStabilizationFlag = true;
 }
 
 /*pbdgpu::PlaneCollisionConstraint::PlaneCollisionConstraint(shared_ptr<GPUMemAllocator> predictedPositionBuffer,
