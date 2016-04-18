@@ -7,6 +7,15 @@
 #include <stdio.h>
 #include <glm/detail/func_geometric.hpp>
 
+vec3 getVec3(const pbd_particle &particles) {
+    vec3 other_p;
+
+    other_p.x = particles.x.x;
+    other_p.y = particles.x.y;
+    other_p.z = particles.x.z;
+    return other_p;
+}
+
 vec3 pbdgpu::bilinearInterp(const vec3 &q11, const vec3 &q21, const vec3 &q12, const vec3 &q22, const float x, const float y)
 {
     const float y2 = 1.0f;
@@ -21,13 +30,82 @@ vec3 pbdgpu::bilinearInterp(const vec3 &q11, const vec3 &q21, const vec3 &q12, c
     return res;
 }
 
-vec3 getVec3(const pbd_particle &particles) {
-    vec3 other_p;
+void pbdgpu::buildBox(vector<pbd_particle> &out_particles, const vec3 &leftBottomFront,
+                      const vec3 &rightTopBack, const int numWidthPoints, const int numHeightPoints,
+                      const int numDepthPoints, const bool filled) {
 
-    other_p.x = particles.x.x;
-    other_p.y = particles.x.y;
-    other_p.z = particles.x.z;
-    return other_p;
+    const int numFrontParticles = numWidthPoints*numHeightPoints;
+    const vec3& p1 = leftBottomFront;
+    const vec3& p7 = rightTopBack;
+    const vec3 p2 = vec3(p7.x,p1.y,p1.z);
+    const vec3 p6 = glm::vec3(p7.x,p7.y,p1.z);
+    const vec3 p5 = glm::vec3(p1.x,p7.y,p1.z);
+    const vec3 center = p1 + .5f * (p7-p1);
+    const vec3 dir = glm::normalize(p7-p6);
+    const float l = glm::distance(p7,p6);
+
+    vector<vec3> frontPoints;
+    vector<vec3> middlePoints;
+    vector<vec3> tmp;
+
+    for(int i = 0; i < numFrontParticles; ++i) {
+        const float x = float(i % numWidthPoints) / float(numWidthPoints - 1);
+        const float y = floor(float(i / numHeightPoints) + 0.1f) / float(numHeightPoints - 1);
+
+        vec3 p = bilinearInterp(p1, p2, p5, p6, x, y);
+
+        frontPoints.push_back(p);
+    }
+
+    if(!filled) {
+        for (int i = 0; i < numFrontParticles; ++i) {
+            if (!filled &&
+                (i / numWidthPoints == 0 || i / numWidthPoints == numHeightPoints - 1 || i % numWidthPoints == 0 ||
+                 i % numWidthPoints == numWidthPoints - 1)) {
+                const float x = float(i % numWidthPoints) / float(numWidthPoints - 1);
+                const float y = floor(float(i / numHeightPoints) + 0.1f) / float(numHeightPoints - 1);
+
+                vec3 p = bilinearInterp(p1, p2, p5, p6, x, y);
+
+                middlePoints.push_back(p);
+            }
+        }
+    }
+
+    tmp = frontPoints;
+
+    for(int i = 0; i < numDepthPoints; ++i) {
+        const float z = (float(i)/float(numDepthPoints))*l;
+        const vec3 offset = z * dir;
+
+        if(filled) {
+            for (int j = 0; j < frontPoints.size(); ++j) {
+                tmp.push_back(frontPoints[j] + offset);
+            }
+        }else{
+            for (int j = 0; j < middlePoints.size(); ++j) {
+                tmp.push_back(middlePoints[j] + offset);
+            }
+        }
+    }
+
+    const vec3 offset = l * dir;
+    for (int j = 0; j < frontPoints.size(); ++j) {
+            tmp.push_back(frontPoints[j] + offset);
+    }
+
+
+
+    out_particles.resize(tmp.size());
+    for(int i = 0; i < tmp.size(); ++i)
+    {
+        const vec3 &p = tmp[i];
+        out_particles[i].x.x = p.x;
+        out_particles[i].x.y = p.y;
+        out_particles[i].x.z = p.z;
+        out_particles[i].phase = 1;
+        out_particles[i].invmass = 1.0f;
+    }
 }
 
 void pbdgpu::buildClothSheet(vector<pbd_particle> &out_particles, const vec3 &p1, const vec3 &p2, const bool suspended,

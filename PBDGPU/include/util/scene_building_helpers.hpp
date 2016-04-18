@@ -28,6 +28,10 @@ namespace pbdgpu
                              vector<pbd_bendingConstraintData> &out_bendConData, const float bendingStiffness,
                              vector<pbd_triangleBendingConstraintData> &out_triagBendConData);
 
+    void buildBox(vector<pbd_particle> &out_particles, const vec3 &leftBottomFront,
+				  const vec3 &rightTopBack, const int numWidthPoints, const int numHeightPoints,
+				  const int numDepthPoints, const bool filled);
+
 	void deriveStandardBuffers(
 			const vector<pbd_particle> &particles,
 			vector<cl_float3> &predPosData,
