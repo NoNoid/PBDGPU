@@ -134,6 +134,7 @@ static struct window
     int cy = height/2;
     const char* title = "SimplePBD";
     bool runCompute = false;
+    bool runComputeResetValue = false;
 } win;
 
 void reshape(const int newWidth, const int newHeight) {
@@ -194,6 +195,11 @@ void keyboard(const unsigned char key, const int x, const int y) {
     if(key == ' ')
     {
         win.runCompute = true;
+    }
+
+    if(key == 'm')
+    {
+        win.runComputeResetValue ^= true;
     }
 }
 
@@ -260,7 +266,7 @@ void display(void) {
 
     if(win.runCompute) {
         compute();
-        win.runCompute = false;
+        win.runCompute = win.runComputeResetValue;
     }
 
     draw();
