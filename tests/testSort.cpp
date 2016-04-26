@@ -38,6 +38,8 @@
 
 #include <vector>
 
+#include <cfloat>
+
 
 int main(int argc, char **argv)
 {
